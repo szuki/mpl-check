@@ -3,13 +3,14 @@ import yaml
 import yaml_loader
 
 class Report(object):
-    COLUMN_LINE = ' at line {line}, column {column}'
+    COLUMN_LINE = ' at line {line}, column {column} in ${yaml_name}'
     def __init__(self, message, element, **kwargs):
         mark = getattr(element, '__yaml_meta__', None)
         self._msg = message.format(element=element, **kwargs)
         if mark:
             self._msg += self.COLUMN_LINE.format(line=mark.line,
-                                                  column=mark.column)
+                                                 column=mark.column,
+                                                 yaml_name=mark.name)
 
     @property
     def msg(self):
@@ -24,6 +25,7 @@ REPORTS = {
     'E040': 'Value is not a string "{element}"',
     'E050': 'File is present in Manfiest {fname}, but not in filesystem',
 
+    'W010': 'Extra key in manifest "{element}"',
     'W020': 'File is not present in Manfiest, but it is '
             'in filesystem: {fname}',
     'W030': 'Extra file in directory "{fname}"',
@@ -56,7 +58,7 @@ class BaseValidator(object):
         try:
             self.data = yaml.load(stream, yaml_loader.YamlLoader)
         except Exception:
-            # XXX: fix it it should be yaml
+            # XXX: fix it it should be yaml error
             print('Exception')
         return self.data
 
@@ -75,4 +77,12 @@ class BaseValidator(object):
         return self._reports
 
     def _unknown_keyword(self, name, value):
-        self.report(Report.W020, key)
+        self.report(Report.W010, name)
+
+    def report(self, type_, element, **kwargs):
+        self._reports.append(type_(element, **kwargs))
+
+    def _valid_string(self, name, value):
+        if not isinstance(value, six.string_types):
+            self.report(Error.E040(value=value))
+

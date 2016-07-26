@@ -45,10 +45,6 @@ class ManifestValidator(BaseValidator):
         for fname in existing_files - files:
             self.report(Report.W020, value, fname=fname)
 
-    def _valid_string(self, name, value):
-        if not isinstance(value, six.string_types):
-            self.report(Error.E040(value=value))
-
     def _valid_tags(self, name, value):
         if not isinstance(value, list):
             raise Error('Tags should be a list')
@@ -58,6 +54,3 @@ class ManifestValidator(BaseValidator):
 
     def _valid_type(self, name, value):
         pass
-
-    def report(self, type_, element, **kwargs):
-        self._reports.append(type_(element, **kwargs))
