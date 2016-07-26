@@ -26,7 +26,7 @@ MURANOPL_BASE = {
                 {'Return': '$instanceTemplate'}]}},
     'Name': 'Instance',
     'Namespaces': {
-         '=': 'org.openstack.networkingSfc',
+         '=': 'org.openstack.test',
          'res': 'io.murano.resources',
          'std': 'io.murano'},
     'Properties': {
@@ -43,8 +43,7 @@ class MuranoPlTests(unittest.TestCase):
     def test_success(self):
         mpl = yaml.dump(MURANOPL_BASE)
         self.mpl_validator.parse(mpl)
-        result = self.mpl_validator.validate()
-        print result
+        result = [r for r in self.mpl_validator.validate()]
         self.assertEqual(0, len(result))
 
 if __name__ == '__main__':

@@ -1,3 +1,4 @@
+from itertools import chain
 import six
 import yaml
 import yaml_loader
@@ -24,6 +25,8 @@ REPORTS = {
     'E030': 'Not supported format version "{element}"',
     'E040': 'Value is not a string "{element}"',
     'E050': 'File is present in Manfiest {fname}, but not in filesystem',
+    'E060': 'Namespace of class {element} in {class_namespace} doesn\'t match '
+            'namespace provided in Manifest',
 
     'W010': 'Extra key in manifest "{element}"',
     'W020': 'File is not present in Manfiest, but it is '
@@ -44,7 +47,6 @@ class BaseValidator(object):
     def __init__(self):
         self.data = {}
         self._keys_checker = {}
-        self._reports = []
 
     def add_validator(self, key, function, required=True):
         kcheckers = self._keys_checker.setdefault(key, {'checkers': [],
@@ -64,25 +66,25 @@ class BaseValidator(object):
 
     def validate(self):
         extra_keys = set(self.data.keys()) - set(self._keys_checker.keys())
+        reports_chain = []
         if extra_keys:
             for key in extra_keys:
                 self._unknown_keyword(key, self.data[key])
         for k, v in six.iteritems(self._keys_checker):
             if k in self.data:
                 for checker in v['checkers']:
-                    checker(k, self.data[k])
+                    result = checker(k, self.data[k])
+                    if result:
+                        reports_chain.append(result)
             else:
                 if v['required']:
-                    self.report(Report.E020, k)
-        return self._reports
+                    reports_chain.append([Report.E020(k)])
+        return chain(*reports_chain)
 
     def _unknown_keyword(self, name, value):
-        self.report(Report.W010, name)
-
-    def report(self, type_, element, **kwargs):
-        self._reports.append(type_(element, **kwargs))
+        yield Report.W010(name)
 
     def _valid_string(self, name, value):
         if not isinstance(value, six.string_types):
-            self.report(Error.E040(value=value))
+            yield Error.E040(value=value)
 

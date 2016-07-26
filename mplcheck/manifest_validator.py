@@ -35,15 +35,15 @@ class ManifestValidator(BaseValidator):
 
     def _valid_format(self, name, value):
         if value not in ['1.0', '1.1', '1.2', '1.3']:
-            self.report(Report.E030, value)
+            yield Report.E030(value)
 
     def _valid_classes(self, name, value):
         files = set(value.values())
         existing_files = set(get_all_files(self._class_directory))
         for fname in files - existing_files:
-            self.report(Report.E050, name, fname=fname)
+            yield Report.E050(name, fname=fname)
         for fname in existing_files - files:
-            self.report(Report.W020, value, fname=fname)
+            yield Report.W020(value, fname=fname)
 
     def _valid_tags(self, name, value):
         if not isinstance(value, list):
