@@ -60,6 +60,3 @@ class NamespacesTest(unittest.TestCase):
                       'org.openstack.test.Instance doesn\'t match namespace '
                       'provided in Manifest',
                       mpl_result[0].msg)
-
-if __name__ == '__main__':
-    unittest.main()

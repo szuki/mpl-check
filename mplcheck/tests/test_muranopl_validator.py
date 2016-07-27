@@ -60,6 +60,3 @@ class MuranoPlTests(unittest.TestCase):
         self.mpl_validator.parse(mpl)
         result = [r for r in self.mpl_validator.validate()]
         self.assertEqual(0, len(result))
-
-if __name__ == '__main__':
-    unittest.main()

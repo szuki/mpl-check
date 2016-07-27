@@ -86,6 +86,3 @@ class TestUnit(unittest.TestCase):
         self.assertEqual(1, len(all_))
         self.assertIn('File is not present in Manfiest, but it is in '
                       'filesystem: FlowClassifier.yaml', all_[0].msg)
-
-if __name__ == '__main__':
-    unittest.main()
