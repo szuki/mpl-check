@@ -31,8 +31,7 @@ class NamespacesTest(unittest.TestCase):
         manifest_validator = ManifestValidator('example')
         checker = NamespaceChecker()
         manifest_validator.add_validator('Classes', checker.valid_classes)
-        mpl_validator.add_validator('Namespaces', checker.valid_namespace)
-        mpl_validator.add_validator('Name', checker.valid_classname)
+        mpl_validator.add_validator('_AST_', checker.valid_mpl)
 
         manifest_validator.parse(yaml.dump(MANIFEST_DICT))
         manifest_result = [r for r in manifest_validator.validate()]
@@ -42,7 +41,7 @@ class NamespacesTest(unittest.TestCase):
         self.assertEqual(0, len(manifest_result))
         self.assertEqual(1, len(mpl_result))
 
-        self.assertIn('Namespace of class Name in org.openstack.test.Instance '
+        self.assertIn('Namespace of class Instance in org.openstack.test.Instance '
                       'doesn\'t match namespace provided in Manifest',
                       mpl_result[0].msg)
 

@@ -71,7 +71,12 @@ class BaseValidator(object):
             for key in extra_keys:
                 self._unknown_keyword(key, self.data[key])
         for k, v in six.iteritems(self._keys_checker):
-            if k in self.data:
+            if k == '_AST_':
+                for checker in v['checkers']:
+                    result = checker(k, self.data)
+                    if result:
+                        reports_chain.append(result)
+            elif k in self.data:
                 for checker in v['checkers']:
                     result = checker(k, self.data[k])
                     if result:
