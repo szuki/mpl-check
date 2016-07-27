@@ -1,3 +1,18 @@
+#    Copyright (c) 2016 Mirantis, Inc.
+#
+#    Licensed under the Apache License, Version 2.0 (the "License"); you may
+#    not use this file except in compliance with the License. You may obtain
+#    a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+#    License for the specific language governing permissions and limitations
+#    under the License.
+
+
 from copy import deepcopy
 from mock import patch
 import unittest
@@ -21,7 +36,7 @@ MANIFEST_DICT = {
 
 class TestUnit(unittest.TestCase):
     def setUp(self):
-        self._gaf_patcher= patch('mplcheck.manifest_validator.get_all_files')
+        self._gaf_patcher = patch('mplcheck.manifest_validator.get_all_files')
         self.gaf = self._gaf_patcher.start()
         self.gaf.return_value = ['FlowClassifier.yaml', 'Instance.yaml']
 
@@ -40,7 +55,8 @@ class TestUnit(unittest.TestCase):
         mv.parse(yaml.dump(md))
         all_ = [w for w in mv.validate()]
         self.assertEqual(1, len(all_))
-        self.assertIn('Not supported format version "0.9" at line', all_[0].msg)
+        self.assertIn('Not supported format version "0.9" at line',
+                      all_[0].msg)
 
     def test_missing_format(self):
         mv = ManifestValidator('example/Classes')
@@ -58,7 +74,8 @@ class TestUnit(unittest.TestCase):
         mv.parse(yaml.dump(md))
         all_ = [w for w in mv.validate()]
         self.assertEqual(1, len(all_))
-        self.assertIn('File is present in Manfiest Instance.yaml, but not in filesystem', all_[0].msg)
+        self.assertIn('File is present in Manfiest Instance.yaml, but not in '
+                      'filesystem', all_[0].msg)
 
     def test_extra_file_in_directory(self):
         mv = ManifestValidator('example/Classes')
@@ -67,7 +84,8 @@ class TestUnit(unittest.TestCase):
         mv.parse(yaml.dump(md))
         all_ = [w for w in mv.validate()]
         self.assertEqual(1, len(all_))
-        self.assertIn('File is not present in Manfiest, but it is in filesystem: FlowClassifier.yaml', all_[0].msg)
+        self.assertIn('File is not present in Manfiest, but it is in '
+                      'filesystem: FlowClassifier.yaml', all_[0].msg)
 
 if __name__ == '__main__':
     unittest.main()

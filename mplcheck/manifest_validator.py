@@ -1,11 +1,25 @@
+#    Copyright (c) 2016 Mirantis, Inc.
+#
+#    Licensed under the Apache License, Version 2.0 (the "License"); you may
+#    not use this file except in compliance with the License. You may obtain
+#    a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+#    License for the specific language governing permissions and limitations
+#    under the License.
+
+
 import os.path
 import six
 
-from mplcheck.base_validator import BaseValidator, Report
+from mplcheck.base_validator import BaseValidator
+from mplcheck.base_validator import Report
 
 
-#Note: It would be best to use glob, but untill python 3.5
-#      recursive is not supported...
 def get_all_files(directory):
     matches = []
     for root, dirnames, filenames in os.walk(directory):
@@ -13,8 +27,8 @@ def get_all_files(directory):
             matches.append(os.path.join(root, fname))
     return matches
 
-class ManifestValidator(BaseValidator):
 
+class ManifestValidator(BaseValidator):
     def __init__(self, class_directory):
         super(ManifestValidator, self).__init__()
         self._class_directory = class_directory
@@ -47,7 +61,7 @@ class ManifestValidator(BaseValidator):
 
     def _valid_tags(self, name, value):
         if not isinstance(value, list):
-            raise Error('Tags should be a list')
+            raise Report.E070('Tags should be a list')
 
     def _valid_require(self, name, value):
         pass

@@ -1,10 +1,27 @@
+#    Copyright (c) 2016 Mirantis, Inc.
+#
+#    Licensed under the Apache License, Version 2.0 (the "License"); you may
+#    not use this file except in compliance with the License. You may obtain
+#    a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+#    License for the specific language governing permissions and limitations
+#    under the License.
+
+
 from itertools import chain
 import six
 import yaml
 import yaml_loader
 
+
 class Report(object):
     COLUMN_LINE = ' at line {line}, column {column} in ${yaml_name}'
+
     def __init__(self, message, element, **kwargs):
         mark = getattr(element, '__yaml_meta__', None)
         self._msg = message.format(element=element, **kwargs)
@@ -27,6 +44,7 @@ REPORTS = {
     'E050': 'File is present in Manfiest {fname}, but not in filesystem',
     'E060': 'Namespace of class {element} in {class_namespace} doesn\'t match '
             'namespace provided in Manifest',
+    'E070': 'Tags should be a list',
 
     'W010': 'Extra key in manifest "{element}"',
     'W020': 'File is not present in Manfiest, but it is '
@@ -36,6 +54,7 @@ REPORTS = {
 
 for key, value in six.iteritems(REPORTS):
     msg = REPORTS[key]
+
     def _w(message):
         def __create(element, **kwargs):
             return Report(message, element, **kwargs)
@@ -54,7 +73,6 @@ class BaseValidator(object):
         kcheckers['checkers'].append(function)
         if required:
             kcheckers['required'] = True
-
 
     def parse(self, stream):
         try:
@@ -91,5 +109,4 @@ class BaseValidator(object):
 
     def _valid_string(self, name, value):
         if not isinstance(value, six.string_types):
-            yield Error.E040(value=value)
-
+            yield Report.E040(value=value)

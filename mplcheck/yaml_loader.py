@@ -1,4 +1,4 @@
-#    Copyright (c) 2015 Mirantis, Inc.
+#    Copyright (c) 2016 Mirantis, Inc.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
 #    not use this file except in compliance with the License. You may obtain
@@ -77,13 +77,13 @@ class YamlLoader(BaseLoader):
 
 
 YamlLoader.add_constructor(
-        u'tag:yaml.org,2002:seq',
-        YamlLoader.construct_yaml_seq)
+    u'tag:yaml.org,2002:seq',
+    YamlLoader.construct_yaml_seq)
 
 YamlLoader.add_constructor(
-        u'tag:yaml.org,2002:str',
-        YamlLoader.construct_yaml_str)
+    u'tag:yaml.org,2002:str',
+    YamlLoader.construct_yaml_str)
 
 YamlLoader.add_constructor(
-        u'tag:yaml.org,2002:map',
-        YamlLoader.construct_yaml_map)
+    u'tag:yaml.org,2002:map',
+    YamlLoader.construct_yaml_map)

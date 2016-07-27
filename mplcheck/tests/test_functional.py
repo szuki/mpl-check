@@ -1,6 +1,21 @@
+#    Copyright (c) 2016 Mirantis, Inc.
+#
+#    Licensed under the Apache License, Version 2.0 (the "License"); you may
+#    not use this file except in compliance with the License. You may obtain
+#    a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+#    License for the specific language governing permissions and limitations
+#    under the License.
+
+
 from mock import patch
-import yaml
 import unittest
+import yaml
 
 from mplcheck.checkers import NamespaceChecker
 from mplcheck.manifest_validator import ManifestValidator
@@ -22,7 +37,7 @@ MANIFEST_DICT = {
 
 class NamespacesTest(unittest.TestCase):
     def setUp(self):
-        self._gaf_patcher= patch('mplcheck.manifest_validator.get_all_files')
+        self._gaf_patcher = patch('mplcheck.manifest_validator.get_all_files')
         self.gaf = self._gaf_patcher.start()
         self.gaf.return_value = ['Instance.yaml']
 
@@ -41,8 +56,9 @@ class NamespacesTest(unittest.TestCase):
         self.assertEqual(0, len(manifest_result))
         self.assertEqual(1, len(mpl_result))
 
-        self.assertIn('Namespace of class Instance in org.openstack.test.Instance '
-                      'doesn\'t match namespace provided in Manifest',
+        self.assertIn('Namespace of class Instance in '
+                      'org.openstack.test.Instance doesn\'t match namespace '
+                      'provided in Manifest',
                       mpl_result[0].msg)
 
 if __name__ == '__main__':
