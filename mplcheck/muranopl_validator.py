@@ -14,16 +14,27 @@
 
 
 from mplcheck.base_validator import BaseValidator
+from mplcheck.base_validator import Report
 
 
 class MuranoPLValidator(BaseValidator):
     def __init__(self):
         super(MuranoPLValidator, self).__init__()
-        self.add_validator('Extends', self._valid_string)
-        self.add_validator('Name', self._valid_string)
-        self.add_validator('Properties', self._valid_properties)
+        self.add_validator('Name', self._valid_string, False)
+        self.add_validator('Name', self._valid_name, False)
         self.add_validator('Namespaces', self._valid_namespaces)
-        self.add_validator('Methods', self._valid_methods)
+        self.add_validator('Extends', self._valid_extends, False)
+        self.add_validator('Properties', self._valid_properties, False)
+        self.add_validator('Methods', self._valid_methods, False)
+
+    def _valid_name(self, name, value):
+        if value.startswith('__'):
+            yield Report.E011(value)
+        if not (value != value.lower() and value != value.upper()):
+            yield Report.W011(value)
+
+    def _valid_extends(self, name, value):
+        pass
 
     def _valid_properties(self, name, value):
         pass

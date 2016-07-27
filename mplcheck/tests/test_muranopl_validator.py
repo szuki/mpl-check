@@ -12,10 +12,11 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-
-from mplcheck.muranopl_validator import MuranoPLValidator
+from copy import deepcopy
 import unittest
 import yaml
+
+from mplcheck.muranopl_validator import MuranoPLValidator
 
 
 MURANOPL_BASE = {
@@ -60,3 +61,12 @@ class MuranoPlTests(unittest.TestCase):
         self.mpl_validator.parse(mpl)
         result = [r for r in self.mpl_validator.validate()]
         self.assertEqual(0, len(result))
+
+    def test_double_underscored_name(self):
+        mpl_dict = deepcopy(MURANOPL_BASE)
+        mpl_dict['Name'] = '__Instance'
+        mpl = yaml.dump(mpl_dict)
+        self.mpl_validator.parse(mpl)
+        result = [r for r in self.mpl_validator.validate()]
+        self.assertEqual(1, len(result))
+        self.assertIn('Invalid class name "__Instance" at line', result[0].msg)

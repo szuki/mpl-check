@@ -20,6 +20,7 @@ import yaml_loader
 
 
 class Report(object):
+    PREFIX = '{code}:'
     COLUMN_LINE = ' at line {line}, column {column} in ${yaml_name}'
 
     def __init__(self, message, element, **kwargs):
@@ -38,6 +39,7 @@ class Report(object):
         return '{0}'.format(self._msg)
 
 REPORTS = {
+    'E011': 'Invalid class name "{element}"',
     'E020': 'Missing required key "{element}"',
     'E030': 'Not supported format version "{element}"',
     'E040': 'Value is not a string "{element}"',
@@ -47,6 +49,7 @@ REPORTS = {
     'E070': 'Tags should be a list',
 
     'W010': 'Extra key in manifest "{element}"',
+    'W011': 'Invalid Case of class name "{element}"',
     'W020': 'File is not present in Manfiest, but it is '
             'in filesystem: {fname}',
     'W030': 'Extra file in directory "{fname}"',
@@ -56,8 +59,10 @@ for key, value in six.iteritems(REPORTS):
     msg = REPORTS[key]
 
     def _w(message):
+        prefix = Report.PREFIX.format(code=key)
+
         def __create(element, **kwargs):
-            return Report(message, element, **kwargs)
+            return Report(prefix + message, element, **kwargs)
         return __create
     setattr(Report, key, staticmethod(_w(msg)))
 
@@ -71,7 +76,9 @@ class BaseValidator(object):
         kcheckers = self._keys_checker.setdefault(key, {'checkers': [],
                                                         'required': False})
         kcheckers['checkers'].append(function)
-        if required:
+        if key == '_AST_':
+            kcheckers['required'] = False
+        elif required:
             kcheckers['required'] = True
 
     def parse(self, stream):
@@ -83,25 +90,27 @@ class BaseValidator(object):
         return self.data
 
     def validate(self):
-        extra_keys = set(self.data.keys()) - set(self._keys_checker.keys())
         reports_chain = []
-        if extra_keys:
-            for key in extra_keys:
-                self._unknown_keyword(key, self.data[key])
-        for k, v in six.iteritems(self._keys_checker):
-            if k == '_AST_':
-                for checker in v['checkers']:
-                    result = checker(k, self.data)
-                    if result:
-                        reports_chain.append(result)
-            elif k in self.data:
-                for checker in v['checkers']:
-                    result = checker(k, self.data[k])
-                    if result:
-                        reports_chain.append(result)
+
+        def run_checkers(name, checkers, data):
+            for checker in checkers:
+                result = checker(name, data)
+                if result:
+                    reports_chain.append(result)
+
+        file_check = self._keys_checker.get('_AST_')
+        if file_check:
+            run_checkers('_AST_', file_check['checkers'], self.data)
+        for key, value in six.iteritems(self.data):
+            key_checkers = self._keys_checker.get(key)
+            if key_checkers:
+                run_checkers(key, key_checkers['checkers'], self.data[key])
             else:
-                if v['required']:
-                    reports_chain.append([Report.E020(k)])
+                self._unknown_keyword(key, value)
+        missing = set(key for key, value in six.iteritems(self._keys_checker)
+                      if value['required']) - set(self.data.keys())
+        for m in missing:
+            reports_chain.append([Report.E020(m)])
         return chain(*reports_chain)
 
     def _unknown_keyword(self, name, value):
