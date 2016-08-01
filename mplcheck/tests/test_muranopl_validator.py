@@ -62,6 +62,14 @@ class MuranoPlTests(unittest.TestCase):
         result = [r for r in self.mpl_validator.validate()]
         self.assertEqual(0, len(result))
 
+    def test_no_name_in_file(self):
+        mpl_dict = deepcopy(MURANOPL_BASE)
+        del mpl_dict['Name']
+        mpl = yaml.dump(mpl_dict)
+        self.mpl_validator.parse(mpl)
+        result = [r for r in self.mpl_validator.validate()]
+        self.assertEqual(0, len(result))
+
     def test_double_underscored_name(self):
         mpl_dict = deepcopy(MURANOPL_BASE)
         mpl_dict['Name'] = '__Instance'
@@ -70,3 +78,33 @@ class MuranoPlTests(unittest.TestCase):
         result = [r for r in self.mpl_validator.validate()]
         self.assertEqual(1, len(result))
         self.assertIn('Invalid class name "__Instance" at line', result[0].msg)
+
+    def test_not_camel_case_name(self):
+        mpl_dict = deepcopy(MURANOPL_BASE)
+        mpl_dict['Name'] = 'notcamelcase'
+        mpl = yaml.dump(mpl_dict)
+        self.mpl_validator.parse(mpl)
+        result = [r for r in self.mpl_validator.validate()]
+        self.assertEqual(1, len(result))
+        self.assertIn('Invalid class name "notcamelcase" at line',
+                      result[0].msg)
+
+    def test_whitespace_in_name(self):
+        mpl_dict = deepcopy(MURANOPL_BASE)
+        mpl_dict['Name'] = 'white space'
+        mpl = yaml.dump(mpl_dict)
+        self.mpl_validator.parse(mpl)
+        result = [r for r in self.mpl_validator.validate()]
+        self.assertEqual(1, len(result))
+        self.assertIn('Invalid class name "white space" at line',
+                      result[0].msg)
+
+    def test_properties_usage(self):
+        mpl_dict = deepcopy(MURANOPL_BASE)
+        mpl_dict['Properties']['ports']['Usage'] = 'OutIn'
+        mpl = yaml.dump(mpl_dict)
+        self.mpl_validator.parse(mpl)
+        result = [r for r in self.mpl_validator.validate()]
+        self.assertEqual(1, len(result))
+        self.assertIn('Not allowed usage "OutIn" at line',
+                      result[0].msg)
