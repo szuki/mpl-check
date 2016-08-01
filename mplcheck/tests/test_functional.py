@@ -18,9 +18,9 @@ import unittest
 import yaml
 
 from mplcheck.checkers import NamespaceChecker
-from mplcheck.manifest_validator import ManifestValidator
-from mplcheck.muranopl_validator import MuranoPLValidator
-from mplcheck.tests.muranopl_validator_tests import MURANOPL_BASE
+from mplcheck.tests.test_muranopl_validator import MURANOPL_BASE
+from mplcheck.validators.manifest import ManifestValidator
+from mplcheck.validators.muranopl import MuranoPLValidator
 
 
 MANIFEST_DICT = {
@@ -37,7 +37,7 @@ MANIFEST_DICT = {
 
 class NamespacesTest(unittest.TestCase):
     def setUp(self):
-        self._gaf_patcher = patch('mplcheck.manifest_validator.get_all_files')
+        self._gaf_patcher = patch('mplcheck.validators.manifest.get_all_files')
         self.gaf = self._gaf_patcher.start()
         self.gaf.return_value = ['Instance.yaml']
 

@@ -16,8 +16,8 @@
 import os.path
 import six
 
-from mplcheck.base_validator import BaseValidator
-from mplcheck.base_validator import Report
+from mplcheck.validators.base import BaseValidator
+from mplcheck.validators.base import Report
 
 
 def get_all_files(directory):

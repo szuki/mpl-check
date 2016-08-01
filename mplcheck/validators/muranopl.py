@@ -15,8 +15,8 @@
 import re
 import six
 
-from mplcheck.base_validator import BaseValidator
-from mplcheck.base_validator import Report
+from mplcheck.validators.base import BaseValidator
+from mplcheck.validators.base import Report
 
 
 class MuranoPLValidator(BaseValidator):

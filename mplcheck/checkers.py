@@ -13,7 +13,7 @@
 #    under the License.
 
 
-from mplcheck.base_validator import Report
+from mplcheck.validators.base import Report
 
 
 class NamespaceChecker(object):

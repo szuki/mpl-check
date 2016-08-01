@@ -16,7 +16,7 @@ from copy import deepcopy
 import unittest
 import yaml
 
-from mplcheck.muranopl_validator import MuranoPLValidator
+from mplcheck.validators.muranopl import MuranoPLValidator
 
 
 MURANOPL_BASE = {

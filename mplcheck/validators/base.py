@@ -16,7 +16,8 @@
 from itertools import chain
 import six
 import yaml
-import yaml_loader
+
+from mplcheck import yaml_loader
 
 
 class Report(object):

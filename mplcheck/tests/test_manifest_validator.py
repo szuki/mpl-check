@@ -18,7 +18,7 @@ from mock import patch
 import unittest
 import yaml
 
-from mplcheck.manifest_validator import ManifestValidator
+from mplcheck.validators.manifest import ManifestValidator
 
 
 MANIFEST_DICT = {
@@ -36,7 +36,7 @@ MANIFEST_DICT = {
 
 class TestUnit(unittest.TestCase):
     def setUp(self):
-        self._gaf_patcher = patch('mplcheck.manifest_validator.get_all_files')
+        self._gaf_patcher = patch('mplcheck.validators.manifest.get_all_files')
         self.gaf = self._gaf_patcher.start()
         self.gaf.return_value = ['FlowClassifier.yaml', 'Instance.yaml']
 
