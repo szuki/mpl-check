@@ -45,8 +45,8 @@ class NamespacesTest(unittest.TestCase):
         mpl_validator = MuranoPLValidator()
         manifest_validator = ManifestValidator('example')
         checker = NamespaceChecker()
-        manifest_validator.add_validator('Classes', checker.valid_classes)
-        mpl_validator.add_validator('_AST_', checker.valid_mpl)
+        manifest_validator.add_checker(checker.valid_classes, 'Classes')
+        mpl_validator.add_checker(checker.valid_mpl)
 
         manifest_validator.parse(yaml.dump(MANIFEST_DICT))
         manifest_result = [r for r in manifest_validator.validate()]

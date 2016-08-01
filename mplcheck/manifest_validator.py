@@ -45,7 +45,7 @@ class ManifestValidator(BaseValidator):
         }
         for key, checker in six.iteritems(BASE_CHECKERS):
             # Let's assume for now that all are required
-            self.add_validator(key, checker, required=True)
+            self.add_checker(checker, key, required=True)
 
     def _valid_format(self, name, value):
         if value not in ['1.0', '1.1', '1.2', '1.3']:

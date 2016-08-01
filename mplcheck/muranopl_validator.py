@@ -22,12 +22,12 @@ from mplcheck.base_validator import Report
 class MuranoPLValidator(BaseValidator):
     def __init__(self):
         super(MuranoPLValidator, self).__init__()
-        self.add_validator('Name', self._valid_string, False)
-        self.add_validator('Name', self._valid_name, False)
-        self.add_validator('Namespaces', self._valid_namespaces)
-        self.add_validator('Extends', self._valid_extends, False)
-        self.add_validator('Properties', self._valid_properties, False)
-        self.add_validator('Methods', self._valid_methods, False)
+        self.add_checker(self._valid_string, 'Name', False)
+        self.add_checker(self._valid_name, 'Name', False)
+        self.add_checker(self._valid_namespaces, 'Namespaces')
+        self.add_checker(self._valid_extends, 'Extends', False)
+        self.add_checker(self._valid_properties, 'Properties', False)
+        self.add_checker(self._valid_methods, 'Methods', False)
 
     def _valid_name(self, name, value):
         if value.startswith('__') or \

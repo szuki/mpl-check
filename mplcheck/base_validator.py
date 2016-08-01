@@ -74,11 +74,11 @@ class BaseValidator(object):
         self.data = {}
         self._keys_checker = {}
 
-    def add_validator(self, key, function, required=True):
+    def add_checker(self, function, key=None, required=True):
         kcheckers = self._keys_checker.setdefault(key, {'checkers': [],
                                                         'required': False})
         kcheckers['checkers'].append(function)
-        if key == '_AST_':
+        if key is None:
             kcheckers['required'] = False
         elif required:
             kcheckers['required'] = True
@@ -100,9 +100,9 @@ class BaseValidator(object):
                 if result:
                     reports_chain.append(result)
 
-        file_check = self._keys_checker.get('_AST_')
+        file_check = self._keys_checker.get(None)
         if file_check:
-            run_checkers('_AST_', file_check['checkers'], self.data)
+            run_checkers(None, file_check['checkers'], self.data)
         for key, value in six.iteritems(self.data):
             key_checkers = self._keys_checker.get(key)
             if key_checkers:
