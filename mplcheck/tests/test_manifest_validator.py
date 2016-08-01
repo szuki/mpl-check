@@ -55,8 +55,11 @@ class TestUnit(unittest.TestCase):
         mv.parse(yaml.dump(md))
         all_ = [w for w in mv.validate()]
         self.assertEqual(1, len(all_))
-        self.assertIn('Not supported format version "0.9" at line',
-                      all_[0].msg)
+        report = all_[0]
+        self.assertIn('Not supported format version "0.9"',
+                      report.message)
+        self.assertEqual(6, report.line)
+        self.assertEqual(9, report.column)
 
     def test_missing_format(self):
         mv = ManifestValidator('example/Classes')
@@ -65,7 +68,7 @@ class TestUnit(unittest.TestCase):
         mv.parse(yaml.dump(md))
         all_ = [w for w in mv.validate()]
         self.assertEqual(1, len(all_))
-        self.assertIn('Missing required key "Format"', all_[0].msg)
+        self.assertIn('Missing required key "Format"', all_[0].message)
 
     def test_not_existing_file(self):
         mv = ManifestValidator('example/Classes')
@@ -74,8 +77,11 @@ class TestUnit(unittest.TestCase):
         mv.parse(yaml.dump(md))
         all_ = [w for w in mv.validate()]
         self.assertEqual(1, len(all_))
+        report = all_[0]
         self.assertIn('File is present in Manfiest Instance.yaml, but not in '
-                      'filesystem', all_[0].msg)
+                      'filesystem', report.message)
+        self.assertEqual(2, report.line)
+        self.assertEqual(76, report.column)
 
     def test_extra_file_in_directory(self):
         mv = ManifestValidator('example/Classes')
@@ -84,5 +90,6 @@ class TestUnit(unittest.TestCase):
         mv.parse(yaml.dump(md))
         all_ = [w for w in mv.validate()]
         self.assertEqual(1, len(all_))
+        report = all_[0]
         self.assertIn('File is not present in Manfiest, but it is in '
-                      'filesystem: FlowClassifier.yaml', all_[0].msg)
+                      'filesystem: FlowClassifier.yaml', report.message)

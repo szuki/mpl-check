@@ -16,8 +16,8 @@
 import os.path
 import six
 
-from mplcheck.validators.base import BaseValidator
-from mplcheck.validators.base import Report
+from mplcheck import error
+from mplcheck.validators import base
 
 
 def get_all_files(directory):
@@ -28,7 +28,7 @@ def get_all_files(directory):
     return matches
 
 
-class ManifestValidator(BaseValidator):
+class ManifestValidator(base.BaseValidator):
     def __init__(self, class_directory):
         super(ManifestValidator, self).__init__()
         self._class_directory = class_directory
@@ -49,19 +49,25 @@ class ManifestValidator(BaseValidator):
 
     def _valid_format(self, name, value):
         if value not in ['1.0', '1.1', '1.2', '1.3']:
-            yield Report.E030(value)
+            yield error.report.E030('Not supported format version "{0}"'
+                                    .format(value), value)
 
     def _valid_classes(self, name, value):
         files = set(value.values())
         existing_files = set(get_all_files(self._class_directory))
         for fname in files - existing_files:
-            yield Report.E050(name, fname=fname)
+            yield error.report.E050('File is present in Manfiest {fname}, '
+                                    'but not in filesystem'
+                                    .format(fname=fname),
+                                    fname)
         for fname in existing_files - files:
-            yield Report.W020(value, fname=fname)
+            yield error.report.W020('File is not present in Manfiest, but '
+                                    'it is in filesystem: {fname}'
+                                    .format(fname=fname), fname)
 
     def _valid_tags(self, name, value):
         if not isinstance(value, list):
-            raise Report.E070('Tags should be a list')
+            raise error.report.E070('Tags should be a list', value)
 
     def _valid_require(self, name, value):
         pass

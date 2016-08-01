@@ -56,7 +56,7 @@ class NamespacesTest(unittest.TestCase):
         self.assertEqual(0, len(manifest_result))
         self.assertEqual(1, len(mpl_result))
 
-        self.assertIn('Namespace of class Instance in '
-                      'org.openstack.test.Instance doesn\'t match namespace '
+        self.assertIn('Namespace of class "Instance" in '
+                      '"org.openstack.test.Instance" doesn\'t match namespace '
                       'provided in Manifest',
-                      mpl_result[0].msg)
+                      mpl_result[0].message)

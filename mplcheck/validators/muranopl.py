@@ -15,11 +15,11 @@
 import re
 import six
 
-from mplcheck.validators.base import BaseValidator
-from mplcheck.validators.base import Report
+from mplcheck import error
+from mplcheck.validators import base
 
 
-class MuranoPLValidator(BaseValidator):
+class MuranoPLValidator(base.BaseValidator):
     def __init__(self):
         super(MuranoPLValidator, self).__init__()
         self.add_checker(self._valid_string, 'Name', False)
@@ -32,20 +32,22 @@ class MuranoPLValidator(BaseValidator):
     def _valid_name(self, name, value):
         if value.startswith('__') or \
            not re.match('[a-zA-Z_][a-zA-Z0-9_]*', value):
-            yield Report.E011(value)
+            yield error.report.E011('Invalid class name "{0}"'.format(value),
+                                    value)
         if not (value != value.lower() and value != value.upper()):
-            yield Report.W011(value)
+            yield error.report.W011('Invalid class name "{0}"'.format(value),
+                                    value)
 
     def _valid_extends(self, name, value):
         if isinstance(value, list):
             for cls in value:
                 if not self.check_extended_class(cls):
-                    yield Report.E023(cls)
+                    yield error.report.E023('Wrong Extended Class', cls)
         elif isinstance(value, six.string_types):
             if not self.check_extended_class(value):
-                yield Report.E023(cls)
+                yield error.report.E023('Wrong Extended Class', cls)
         else:
-            yield Report.E023(value)
+            yield error.report.E023(value)
 
     def check_extended_class(self, cls):
         if isinstance(cls, six.string_types):
@@ -61,16 +63,18 @@ class MuranoPLValidator(BaseValidator):
                                   'Runtime'])
         for property_, values in six.iteritems(value):
             if not self.check_property_name(property_):
-                yield Report.E041(property_)
+                yield error.report.E041('Wrong property name', property_)
             usage = values.get('Usage')
             if usage:
                 if usage not in usage_allowed:
-                    yield Report.E042(usage)
+                    yield error.report.E042('Not allowed usage '
+                                            '"{0}"'.format(usage),
+                                            usage)
             default = value.get('Default')
             if default:
                 if not (isinstance(default, (six.string_types, float, int)) or
                         self.check_yaql(default)):
-                    yield Report.E043(default)
+                    yield error.report.E043('Wrong type of default', default)
 
     def check_yaql(self, yaql):
         return True

@@ -77,7 +77,10 @@ class MuranoPlTests(unittest.TestCase):
         self.mpl_validator.parse(mpl)
         result = [r for r in self.mpl_validator.validate()]
         self.assertEqual(1, len(result))
-        self.assertIn('Invalid class name "__Instance" at line', result[0].msg)
+        report = result[0]
+        self.assertIn('Invalid class name "__Instance"', report.message)
+        self.assertEqual(20, report.line)
+        self.assertEqual(7, report.column)
 
     def test_not_camel_case_name(self):
         mpl_dict = deepcopy(MURANOPL_BASE)
@@ -86,8 +89,11 @@ class MuranoPlTests(unittest.TestCase):
         self.mpl_validator.parse(mpl)
         result = [r for r in self.mpl_validator.validate()]
         self.assertEqual(1, len(result))
-        self.assertIn('Invalid class name "notcamelcase" at line',
-                      result[0].msg)
+        report = result[0]
+        self.assertIn('Invalid class name "notcamelcase"',
+                      result[0].message)
+        self.assertEqual(20, report.line)
+        self.assertEqual(7, report.column)
 
     def test_whitespace_in_name(self):
         mpl_dict = deepcopy(MURANOPL_BASE)
@@ -96,8 +102,11 @@ class MuranoPlTests(unittest.TestCase):
         self.mpl_validator.parse(mpl)
         result = [r for r in self.mpl_validator.validate()]
         self.assertEqual(1, len(result))
-        self.assertIn('Invalid class name "white space" at line',
-                      result[0].msg)
+        report = result[0]
+        self.assertIn('Invalid class name "white space"',
+                      report.message)
+        self.assertEqual(20, report.line)
+        self.assertEqual(7, report.column)
 
     def test_properties_usage(self):
         mpl_dict = deepcopy(MURANOPL_BASE)
@@ -106,5 +115,8 @@ class MuranoPlTests(unittest.TestCase):
         self.mpl_validator.parse(mpl)
         result = [r for r in self.mpl_validator.validate()]
         self.assertEqual(1, len(result))
-        self.assertIn('Not allowed usage "OutIn" at line',
-                      result[0].msg)
+        report = result[0]
+        self.assertIn('Not allowed usage "OutIn"',
+                      report.message)
+        self.assertEqual(26, report.line)
+        self.assertEqual(12, report.column)

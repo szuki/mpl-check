@@ -13,7 +13,7 @@
 #    under the License.
 
 
-from mplcheck.validators.base import Report
+from mplcheck import error
 
 
 class NamespaceChecker(object):
@@ -26,13 +26,18 @@ class NamespaceChecker(object):
 
     def valid_mpl(self, ast, value):
         namespaces = value.get('Namespaces')
+        name = value.get('Name')
         namespace = namespaces.get('=')
         if namespace:
             namespace = str(namespace)
-            name = value.get('Name')
-            if name:
-                name = str(name)
-                class_path = namespace + '.' + name
-                fname = self._manifest_classes.get(class_path)
-                if not fname:
-                    yield Report.E060(name, class_namespace=class_path)
+        if name:
+            name = str(name)
+            class_path = namespace + '.' + name
+            fname = self._manifest_classes.get(class_path)
+            if not fname:
+                yield error.report.E060('Namespace of class "{class_}" in '
+                                        '"{class_namespace}" doesn\'t match '
+                                        'namespace provided in Manifest'
+                                        .format(class_=name,
+                                                class_namespace=class_path),
+                                        fname)
