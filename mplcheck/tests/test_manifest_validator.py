@@ -93,3 +93,27 @@ class TestUnit(unittest.TestCase):
         report = all_[0]
         self.assertIn('File is not present in Manfiest, but it is in '
                       'filesystem: FlowClassifier.yaml', report.message)
+
+    def test_wrong_type(self):
+        mv = ManifestValidator('example/Classes')
+        md = deepcopy(MANIFEST_DICT)
+        md['Type'] = 'Shared Library'
+        mv.parse(yaml.dump(md))
+        all_ = [w for w in mv.validate()]
+        self.assertEqual(1, len(all_))
+        report = all_[0]
+        self.assertIn('Type is invalid "Shared Library"', report.message)
+        self.assertEqual(11, report.line)
+        self.assertEqual(7, report.column)
+
+    def test_wrong_require_type(self):
+        mv = ManifestValidator('example/Classes')
+        md = deepcopy(MANIFEST_DICT)
+        md['Require'] = [1, 2, 3]
+        mv.parse(yaml.dump(md))
+        all_ = [w for w in mv.validate()]
+        self.assertEqual(1, len(all_))
+        report = all_[0]
+        self.assertIn('Require is not a dict type', report.message)
+        self.assertEqual(9, report.line)
+        self.assertEqual(10, report.column)

@@ -33,6 +33,7 @@ MURANOPL_BASE = {
             'Default': []}},
     'Methods': {
         'prepareStackTemplate': {
+            'Scope': 'Public',
             'Arguments': {
                 'instanceTemplate': {'Contract': {}}},
             'Body': [
@@ -79,7 +80,7 @@ class MuranoPlTests(unittest.TestCase):
         self.assertEqual(1, len(result))
         report = result[0]
         self.assertIn('Invalid class name "__Instance"', report.message)
-        self.assertEqual(20, report.line)
+        self.assertEqual(21, report.line)
         self.assertEqual(7, report.column)
 
     def test_not_camel_case_name(self):
@@ -92,7 +93,7 @@ class MuranoPlTests(unittest.TestCase):
         report = result[0]
         self.assertIn('Invalid class name "notcamelcase"',
                       result[0].message)
-        self.assertEqual(20, report.line)
+        self.assertEqual(21, report.line)
         self.assertEqual(7, report.column)
 
     def test_whitespace_in_name(self):
@@ -105,7 +106,7 @@ class MuranoPlTests(unittest.TestCase):
         report = result[0]
         self.assertIn('Invalid class name "white space"',
                       report.message)
-        self.assertEqual(20, report.line)
+        self.assertEqual(21, report.line)
         self.assertEqual(7, report.column)
 
     def test_properties_usage(self):
@@ -118,5 +119,44 @@ class MuranoPlTests(unittest.TestCase):
         report = result[0]
         self.assertIn('Not allowed usage "OutIn"',
                       report.message)
-        self.assertEqual(26, report.line)
+        self.assertEqual(27, report.line)
         self.assertEqual(12, report.column)
+
+    def test_wrong_type_namespace(self):
+        mpl_dict = deepcopy(MURANOPL_BASE)
+        mpl_dict['Namespaces'] = [1, 2, 3]
+        mpl = yaml.dump(mpl_dict)
+        self.mpl_validator.parse(mpl)
+        result = [r for r in self.mpl_validator.validate()]
+        self.assertEqual(1, len(result))
+        report = result[0]
+        self.assertIn('Wrong type of namespace',
+                      report.message)
+        self.assertEqual(22, report.line)
+        self.assertEqual(13, report.column)
+
+    def test_wrong_method_scope(self):
+        mpl_dict = deepcopy(MURANOPL_BASE)
+        mpl_dict['Methods']['prepareStackTemplate']['Scope'] = 'Wrong'
+        mpl = yaml.dump(mpl_dict)
+        self.mpl_validator.parse(mpl)
+        result = [r for r in self.mpl_validator.validate()]
+        self.assertEqual(1, len(result))
+        report = result[0]
+        self.assertIn('Wrong Scope "Wrong"',
+                      report.message)
+        self.assertEqual(4, report.line)
+        self.assertEqual(5, report.column)
+
+    def test_dict_in_body(self):
+        mpl_dict = deepcopy(MURANOPL_BASE)
+        mpl_dict['Methods']['prepareStackTemplate']['Body'] = {'a': 'b'}
+        mpl = yaml.dump(mpl_dict)
+        self.mpl_validator.parse(mpl)
+        result = [r for r in self.mpl_validator.validate()]
+        self.assertEqual(1, len(result))
+        report = result[0]
+        self.assertIn('Body is not a list or scalar/yaql expression',
+                      report.message)
+        self.assertEqual(7, report.line)
+        self.assertEqual(11, report.column)

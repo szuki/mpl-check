@@ -67,10 +67,13 @@ class ManifestValidator(base.BaseValidator):
 
     def _valid_tags(self, name, value):
         if not isinstance(value, list):
-            raise error.report.E070('Tags should be a list', value)
+            yield error.report.E070('Tags should be a list', value)
 
     def _valid_require(self, name, value):
-        pass
+        if not isinstance(value, dict):
+            yield error.report.E005('Require is not a dict type', value)
 
     def _valid_type(self, name, value):
-        pass
+        if value not in ('Application', 'Library'):
+            yield error.report.E071('Type is invalid "{0}"'.format(value),
+                                    value)

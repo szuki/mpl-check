@@ -47,7 +47,7 @@ class MuranoPLValidator(base.BaseValidator):
             if not self.check_extended_class(value):
                 yield error.report.E023('Wrong Extended Class', cls)
         else:
-            yield error.report.E023(value)
+            yield error.report.E024("Wrong Extended Class type", value)
 
     def check_extended_class(self, cls):
         if isinstance(cls, six.string_types):
@@ -83,7 +83,25 @@ class MuranoPLValidator(base.BaseValidator):
         return True
 
     def _valid_namespaces(self, name, value):
-        pass
+        if not isinstance(value, dict):
+            yield error.report.E044('Wrong type of namespace', value)
 
     def _valid_methods(self, name, value):
-        pass
+        for method_name, method_data in six.iteritems(value):
+            scope = method_data.get('Scope')
+            if scope is not None and scope not in ('Public', 'Session'):
+                yield error.report.E044('Wrong Scope "{0}"'.format(scope),
+                                        method_data)
+            body = method_data.get('Body')
+            if not isinstance(body, (list, six.string_types)):
+                yield error.report.E045('Body is not a list or scalar/yaql '
+                                        'expression', body)
+            else:
+                if isinstance(body, six.string_types):
+                    if not self.check_yaql(body):
+                        yield error.report.E046('Body has invalid yaql', body)
+                else:
+                    for expr in body:
+                        if not self.check_yaql(expr):
+                            yield error.report.E046('Body has invalid yaql',
+                                                    expr)
