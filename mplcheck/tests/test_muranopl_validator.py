@@ -160,3 +160,57 @@ class MuranoPlTests(unittest.TestCase):
                       report.message)
         self.assertEqual(7, report.line)
         self.assertEqual(11, report.column)
+
+    def test_wrong_default_expr(self):
+        mpl_dict = deepcopy(MURANOPL_BASE)
+        mpl_dict['Properties']['ports']['Default'] = '$.deploy('
+        mpl = yaml.dump(mpl_dict)
+        self.mpl_validator.parse(mpl)
+        result = [r for r in self.mpl_validator.validate()]
+        self.assertEqual(1, len(result))
+        report = result[0]
+        self.assertIn('Wrong type of default',
+                      report.message)
+        self.assertEqual(26, report.line)
+        self.assertEqual(14, report.column)
+
+    def test_error_in_method_scalar_body(self):
+        mpl_dict = deepcopy(MURANOPL_BASE)
+        mpl_dict['Methods']['prepareStackTemplate']['Body'] = '$.deploy('
+        mpl = yaml.dump(mpl_dict)
+        self.mpl_validator.parse(mpl)
+        result = [r for r in self.mpl_validator.validate()]
+        self.assertEqual(1, len(result))
+        report = result[0]
+        self.assertIn('Error in expression "$.deploy("',
+                      report.message)
+        self.assertEqual(7, report.line)
+        self.assertEqual(11, report.column)
+
+    def test_error_in_method_for_loop_in(self):
+        mpl_dict = deepcopy(MURANOPL_BASE)
+        mpl_dict['Methods']['prepareStackTemplate']['Body'][0]['In'] =\
+            '$.deploy('
+        mpl = yaml.dump(mpl_dict)
+        self.mpl_validator.parse(mpl)
+        result = [r for r in self.mpl_validator.validate()]
+        self.assertEqual(1, len(result))
+        report = result[0]
+        self.assertIn('Error in expression "$.deploy("',
+                      report.message)
+        self.assertEqual(18, report.line)
+        self.assertEqual(11, report.column)
+
+    def test_error_in_method_for_loop_body(self):
+        mpl_dict = deepcopy(MURANOPL_BASE)
+        mpl_dict['Methods']['prepareStackTemplate']['Body'][0]['Do'][1] =\
+            '$.deploy('
+        mpl = yaml.dump(mpl_dict)
+        self.mpl_validator.parse(mpl)
+        result = [r for r in self.mpl_validator.validate()]
+        self.assertEqual(1, len(result))
+        report = result[0]
+        self.assertIn('Error in expression "$.deploy("',
+                      report.message)
+        self.assertEqual(10, report.line)
+        self.assertEqual(9, report.column)

@@ -12,6 +12,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import yaql
 
 from mplcheck import error
 
@@ -41,3 +42,17 @@ class NamespaceChecker(object):
                                         .format(class_=name,
                                                 class_namespace=class_path),
                                         fname)
+
+
+class YaqlChecker(object):
+    def __init__(self):
+        self._engine = yaql.YaqlFactory().create()
+
+    def __call__(self, data):
+        try:
+            self._engine(data)
+        except yaql.utils.exceptions.YaqlParsingException:
+            return False
+        except TypeError:
+            return False
+        return True

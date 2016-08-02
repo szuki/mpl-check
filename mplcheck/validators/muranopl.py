@@ -15,6 +15,7 @@
 import re
 import six
 
+from mplcheck import checkers
 from mplcheck import error
 from mplcheck.validators import base
 
@@ -28,6 +29,8 @@ class MuranoPLValidator(base.BaseValidator):
         self.add_checker(self._valid_extends, 'Extends', False)
         self.add_checker(self._valid_properties, 'Properties', False)
         self.add_checker(self._valid_methods, 'Methods', False)
+
+        self.yaql_checker = checkers.YaqlChecker()
 
     def _valid_name(self, name, value):
         if value.startswith('__') or \
@@ -70,14 +73,15 @@ class MuranoPLValidator(base.BaseValidator):
                     yield error.report.E042('Not allowed usage '
                                             '"{0}"'.format(usage),
                                             usage)
-            default = value.get('Default')
+            default = values.get('Default')
             if default:
-                if not (isinstance(default, (six.string_types, float, int)) or
-                        self.check_yaql(default)):
-                    yield error.report.E043('Wrong type of default', default)
-
-    def check_yaql(self, yaql):
-        return True
+                if not isinstance(default, (float, int)):
+                    if isinstance(default, six.string_types) and\
+                            not self.yaql_checker(default):
+                        # Note: yaql_checker will fail if string will have
+                        # spaces
+                        yield error.report.E043('Wrong type of default',
+                                                default)
 
     def check_property_name(self, property_):
         return True
@@ -97,11 +101,19 @@ class MuranoPLValidator(base.BaseValidator):
                 yield error.report.E045('Body is not a list or scalar/yaql '
                                         'expression', body)
             else:
-                if isinstance(body, six.string_types):
-                    if not self.check_yaql(body):
-                        yield error.report.E046('Body has invalid yaql', body)
-                else:
-                    for expr in body:
-                        if not self.check_yaql(expr):
-                            yield error.report.E046('Body has invalid yaql',
-                                                    expr)
+                for r in self._valid_method_body(body):
+                    yield r
+
+    def _valid_method_body(self, expr):
+        if isinstance(expr, dict):
+            for v in six.itervalues(expr):
+                for r in self._valid_method_body(v):
+                    yield r
+        elif isinstance(expr, list):
+            for v in expr:
+                for r in self._valid_method_body(v):
+                    yield r
+        elif isinstance(expr, six.string_types):
+            if not self.yaql_checker(expr):
+                yield error.report.E046('Error in expression "{0}"'
+                                        .format(expr), expr)
