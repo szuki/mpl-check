@@ -73,6 +73,14 @@ class MuranoPLValidator(base.BaseValidator):
                     yield error.report.E042('Not allowed usage '
                                             '"{0}"'.format(usage),
                                             usage)
+            contract = values.get('Contract')
+            if contract:
+                if not self.yaql_checker(contract):
+                    yield error.report.E048('Contract is not valid yaql "{0}"'
+                                            .format(contract), contract)
+            else:
+                yield error.report.E047('Missing Contract in property "{0}"'
+                                        .format(property_), property_)
             default = values.get('Default')
             if default:
                 if not isinstance(default, (float, int)):

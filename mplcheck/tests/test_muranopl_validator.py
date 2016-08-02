@@ -28,8 +28,7 @@ MURANOPL_BASE = {
     'Extends': 'res:LinuxMuranoInstance',
     'Properties': {
         'ports': {
-            'Contract': [
-                '$.class(NeutronPort).notNull()'],
+            'Contract': '$.class(NeutronPort).notNull()',
             'Default': []}},
     'Methods': {
         'prepareStackTemplate': {
@@ -171,8 +170,8 @@ class MuranoPlTests(unittest.TestCase):
         report = result[0]
         self.assertIn('Wrong type of default',
                       report.message)
-        self.assertEqual(26, report.line)
-        self.assertEqual(14, report.column)
+        self.assertEqual(24, report.line)
+        self.assertEqual(62, report.column)
 
     def test_error_in_method_scalar_body(self):
         mpl_dict = deepcopy(MURANOPL_BASE)
@@ -214,3 +213,29 @@ class MuranoPlTests(unittest.TestCase):
                       report.message)
         self.assertEqual(10, report.line)
         self.assertEqual(9, report.column)
+
+    def test_missing_contract_in_properties(self):
+        mpl_dict = deepcopy(MURANOPL_BASE)
+        del mpl_dict['Properties']['ports']['Contract']
+        mpl = yaml.dump(mpl_dict)
+        self.mpl_validator.parse(mpl)
+        result = [r for r in self.mpl_validator.validate()]
+        self.assertEqual(1, len(result))
+        report = result[0]
+        self.assertIn('Missing Contract in property "ports"',
+                      report.message)
+        self.assertEqual(24, report.line)
+        self.assertEqual(3, report.column)
+
+    def test_contract_is_not_yaql(self):
+        mpl_dict = deepcopy(MURANOPL_BASE)
+        mpl_dict['Properties']['ports']['Contract'] = '$.deploy('
+        mpl = yaml.dump(mpl_dict)
+        self.mpl_validator.parse(mpl)
+        result = [r for r in self.mpl_validator.validate()]
+        self.assertEqual(1, len(result))
+        report = result[0]
+        self.assertIn('Contract is not valid yaql "$.deploy("',
+                      report.message)
+        self.assertEqual(25, report.line)
+        self.assertEqual(15, report.column)
