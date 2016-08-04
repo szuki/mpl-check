@@ -48,6 +48,7 @@ MURANOPL_BASE = {
                         '$instanceTemplate.mergeWith($template)'}],
                  'For': 'port',
                  'In': '$.ports'},
+                {'sth': 'new(res:Neutron)'},
                 {'Return': '$instanceTemplate'}]}},
 }
 
@@ -79,7 +80,7 @@ class MuranoPlTests(unittest.TestCase):
         self.assertEqual(1, len(result))
         report = result[0]
         self.assertIn('Invalid class name "__Instance"', report.message)
-        self.assertEqual(21, report.line)
+        self.assertEqual(22, report.line)
         self.assertEqual(7, report.column)
 
     def test_not_camel_case_name(self):
@@ -92,7 +93,7 @@ class MuranoPlTests(unittest.TestCase):
         report = result[0]
         self.assertIn('Invalid class name "notcamelcase"',
                       result[0].message)
-        self.assertEqual(21, report.line)
+        self.assertEqual(22, report.line)
         self.assertEqual(7, report.column)
 
     def test_whitespace_in_name(self):
@@ -105,7 +106,7 @@ class MuranoPlTests(unittest.TestCase):
         report = result[0]
         self.assertIn('Invalid class name "white space"',
                       report.message)
-        self.assertEqual(21, report.line)
+        self.assertEqual(22, report.line)
         self.assertEqual(7, report.column)
 
     def test_properties_usage(self):
@@ -118,7 +119,7 @@ class MuranoPlTests(unittest.TestCase):
         report = result[0]
         self.assertIn('Not allowed usage "OutIn"',
                       report.message)
-        self.assertEqual(27, report.line)
+        self.assertEqual(28, report.line)
         self.assertEqual(12, report.column)
 
     def test_wrong_type_namespace(self):
@@ -131,7 +132,7 @@ class MuranoPlTests(unittest.TestCase):
         report = result[0]
         self.assertIn('Wrong type of namespace',
                       report.message)
-        self.assertEqual(22, report.line)
+        self.assertEqual(23, report.line)
         self.assertEqual(13, report.column)
 
     def test_wrong_method_scope(self):
@@ -170,7 +171,7 @@ class MuranoPlTests(unittest.TestCase):
         report = result[0]
         self.assertIn('Wrong type of default',
                       report.message)
-        self.assertEqual(24, report.line)
+        self.assertEqual(25, report.line)
         self.assertEqual(62, report.column)
 
     def test_error_in_method_scalar_body(self):
@@ -224,7 +225,7 @@ class MuranoPlTests(unittest.TestCase):
         report = result[0]
         self.assertIn('Missing Contract in property "ports"',
                       report.message)
-        self.assertEqual(24, report.line)
+        self.assertEqual(25, report.line)
         self.assertEqual(3, report.column)
 
     def test_contract_is_not_yaql(self):
@@ -237,5 +238,5 @@ class MuranoPlTests(unittest.TestCase):
         report = result[0]
         self.assertIn('Contract is not valid yaql "$.deploy("',
                       report.message)
-        self.assertEqual(25, report.line)
+        self.assertEqual(26, report.line)
         self.assertEqual(15, report.column)

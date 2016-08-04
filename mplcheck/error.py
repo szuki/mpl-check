@@ -24,6 +24,9 @@ class CheckError(Exception):
         self.column = column
         self.source = source
 
+    def __repr__(self):
+        return 'CheckError({0})'.format(self.message)
+
 
 def error(code, message, filename=None, line=0, column=0, source=None):
     return CheckError(code=code, message=message, filename=filename,

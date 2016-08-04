@@ -60,7 +60,7 @@ class BaseValidator(object):
             if key_checkers:
                 run_checkers(key, key_checkers['checkers'], self.data[key])
             else:
-                self._unknown_keyword(key, value)
+                reports_chain.append(self._unknown_keyword(key, value))
         missing = set(key for key, value in six.iteritems(self._keys_checker)
                       if value['required']) - set(self.data.keys())
         for m in missing:

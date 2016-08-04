@@ -32,23 +32,20 @@ class ManifestValidator(base.BaseValidator):
     def __init__(self, class_directory):
         super(ManifestValidator, self).__init__()
         self._class_directory = class_directory
-        BASE_CHECKERS = {
-            'Format': self._valid_format,
-            'Classes': self._valid_classes,
-            'Author': self._valid_string,
-            'FullName': self._valid_string,
-            'Name': self._valid_string,
-            'Tags': self._valid_tags,
-            'Require': self._valid_require,
-            'Type': self._valid_type,
-            'Description': self._valid_string,
-        }
-        for key, checker in six.iteritems(BASE_CHECKERS):
-            # Let's assume for now that all are required
-            self.add_checker(checker, key, required=True)
+        self.add_checker(self._valid_format, 'Format', required=False)
+        self.add_checker(self._valid_classes, 'Classes', required=True)
+        self.add_checker(self._valid_string, 'Author', required=True)
+        self.add_checker(self._valid_string, 'FullName', required=True)
+        self.add_checker(self._valid_string, 'Name', required=True)
+        self.add_checker(self._valid_tags, 'Tags', required=True)
+        self.add_checker(self._valid_require, 'Require', required=True)
+        self.add_checker(self._valid_type, 'Type', required=True)
+        self.add_checker(self._valid_string, 'Description', required=True)
+        self.add_checker(self._valid_ui, 'UI', required=False)
+        self.add_checker(self._valid_logo, 'Logo', required=False)
 
     def _valid_format(self, name, value):
-        if value not in ['1.0', '1.1', '1.2', '1.3']:
+        if value not in ['1.0', '1.1', '1.2', '1.3', '1.4']:
             yield error.report.E030('Not supported format version "{0}"'
                                     .format(value), value)
 
@@ -77,3 +74,19 @@ class ManifestValidator(base.BaseValidator):
         if value not in ('Application', 'Library'):
             yield error.report.E071('Type is invalid "{0}"'.format(value),
                                     value)
+
+    def _valid_ui(self, name, value):
+        if isinstance(value, six.string_types):
+            if not os.path.exists(os.path.join('UI', value)):
+                yield error.report.E073('There is no UI file mention in '
+                                        'manifest "{0}"'.format(value), value)
+        else:
+            yield error.report.E072('UI is not a filename', value)
+
+    def _valid_logo(self, name, value):
+        if isinstance(value, six.string_types):
+            if not os.path.exists(value):
+                yield error.report.E074('There is no Logo file mention in '
+                                        'manifest "{0}"'.format(value), value)
+        else:
+            yield error.report.E074('Logo is not a filename', value)

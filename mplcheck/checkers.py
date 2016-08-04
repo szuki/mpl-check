@@ -43,10 +43,48 @@ class NamespaceChecker(object):
                                                 class_namespace=class_path),
                                         fname)
 
+ITERATORS_LIMIT = 1000
+EXPRESSION_MEMORY_QUOTA = 512*1024
+
+ENGINE_10_OPTIONS = {
+    'yaql.limitIterators': ITERATORS_LIMIT,
+    'yaql.memoryQuota': EXPRESSION_MEMORY_QUOTA,
+    'yaql.convertSetsToLists': True,
+    'yaql.convertTuplesToLists': True,
+    'yaql.iterableDicts': True
+}
+
+ENGINE_12_OPTIONS = {
+    'yaql.limitIterators': ITERATORS_LIMIT,
+    'yaql.memoryQuota': EXPRESSION_MEMORY_QUOTA,
+    'yaql.convertSetsToLists': True,
+    'yaql.convertTuplesToLists': True
+}
+
+
+def _add_operators(engine_factory):
+    engine_factory.insert_operator(
+        '>', True, 'is',
+        yaql.factory.OperatorType.BINARY_LEFT_ASSOCIATIVE, False)
+    engine_factory.insert_operator(
+        None, True, ':',
+        yaql.factory.OperatorType.BINARY_LEFT_ASSOCIATIVE, True)
+    engine_factory.insert_operator(
+        ':', True, ':',
+        yaql.factory.OperatorType.PREFIX_UNARY, False)
+    engine_factory.operators.insert(0, ())
+
+
+def _create_engine():
+    engine_factory = yaql.factory.YaqlFactory()
+    _add_operators(engine_factory=engine_factory)
+    options = ENGINE_12_OPTIONS
+    return engine_factory.create(options=options)
+
 
 class YaqlChecker(object):
     def __init__(self):
-        self._engine = yaql.YaqlFactory().create()
+        self._engine = _create_engine()
 
     def __call__(self, data):
         try:
