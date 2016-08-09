@@ -22,17 +22,24 @@ from mplcheck.validators import base
 
 class MuranoPLValidator(base.BaseValidator):
     def __init__(self):
-        super(MuranoPLValidator, self).__init__()
-        self.add_checker(self._valid_string, 'Name', False)
-        self.add_checker(self._valid_name, 'Name', False)
-        self.add_checker(self._valid_namespaces, 'Namespaces')
-        self.add_checker(self._valid_extends, 'Extends', False)
-        self.add_checker(self._valid_properties, 'Properties', False)
-        self.add_checker(self._valid_methods, 'Methods', False)
-
         self.yaql_checker = checkers.YaqlChecker()
 
-    def _valid_name(self, name, value):
+    def prepare_checks(self, loader):
+        def register(checker, key, required):
+            loader['manifest.yaml'][key].register(checker)
+        register(self._valid_format, 'Format')
+        register(self._valid_classes, 'Classes')
+        register(self._valid_string, 'Author')
+        register(self._valid_string, 'FullName')
+        register(self._valid_string, 'Name')
+        register(self._valid_tags, 'Tags')
+        register(self._valid_require, 'Require')
+        register(self._valid_type, 'Type')
+        register(self._valid_string, 'Description')
+        register(self._valid_ui, 'UI')
+        register(self._valid_logo, 'Logo')
+
+    def _valid_name(self, value):
         if value.startswith('__') or \
            not re.match('[a-zA-Z_][a-zA-Z0-9_]*', value):
             yield error.report.E011('Invalid class name "{0}"'.format(value),
@@ -41,7 +48,7 @@ class MuranoPLValidator(base.BaseValidator):
             yield error.report.W011('Invalid class name "{0}"'.format(value),
                                     value)
 
-    def _valid_extends(self, name, value):
+    def _valid_extends(self, value):
         if isinstance(value, list):
             for cls in value:
                 if not self.check_extended_class(cls):
@@ -61,7 +68,7 @@ class MuranoPLValidator(base.BaseValidator):
             return True
         return False
 
-    def _valid_properties(self, name, value):
+    def _valid_properties(self, value):
         usage_allowed = frozenset(['In', 'Out', 'InOut', 'Const', 'Static',
                                   'Runtime'])
         for property_, values in six.iteritems(value):
@@ -94,11 +101,11 @@ class MuranoPLValidator(base.BaseValidator):
     def check_property_name(self, property_):
         return True
 
-    def _valid_namespaces(self, name, value):
+    def _valid_namespaces(self, value):
         if not isinstance(value, dict):
             yield error.report.E044('Wrong type of namespace', value)
 
-    def _valid_methods(self, name, value):
+    def _valid_methods(self, value):
         for method_name, method_data in six.iteritems(value):
             scope = method_data.get('Scope')
             if scope is not None and scope not in ('Public', 'Session'):

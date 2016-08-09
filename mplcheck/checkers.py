@@ -18,14 +18,8 @@ from mplcheck import error
 
 
 class NamespaceChecker(object):
-    def __init__(self):
-        self._maifest_classes = {}
-        self._classname = None
-
-    def valid_classes(self, name, value):
+    def valid_namespace(self, value):
         self._manifest_classes = value
-
-    def valid_mpl(self, ast, value):
         namespaces = value.get('Namespaces')
         name = value.get('Name')
         namespace = namespaces.get('=')
