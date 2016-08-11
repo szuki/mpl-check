@@ -24,7 +24,8 @@ class ManfiestValidatorTests(unittest.TestCase):
         self._oe_patcher = mock.patch('os.path.exists')
         self.exists = self._oe_patcher.start()
         self.exists.return_value = [True, True]
-        self.mv = manifest.ManifestValidator()
+        self.loaded_package = mock.Mock()
+        self.mv = manifest.ManifestValidator(self.loaded_package)
 
     def test_wrong_format(self):
         all_ = [v for v in self.mv._valid_format('0.9')]
@@ -45,17 +46,11 @@ class ManfiestValidatorTests(unittest.TestCase):
         report = all_[0]
         self.assertIn('Require is not a dict type', report.message)
 
-
-class ClassesCheckerTest(unittest.TestCase):
-    def setUp(self):
-        self.loader = mock.Mock()
-        self.checker = manifest.ClassesChecker(self.loader)
-
     def test_not_existing_file(self):
         data = {'org.openstack.Flow': 'FlowClassifier.yaml',
                 'org.openstack.Instance': 'Instance.yaml'}
-        self.loader.list.return_value = ['FlowClassifier.yaml']
-        all_ = [w for w in self.checker._valid_classes(data)]
+        self.loaded_package.list.return_value = ['FlowClassifier.yaml']
+        all_ = [w for w in self.mv._valid_classes(data)]
         self.assertEqual(1, len(all_))
         report = all_[0]
         self.assertIn('File is present in Manfiest Instance.yaml, but not in '
@@ -63,44 +58,38 @@ class ClassesCheckerTest(unittest.TestCase):
 
     def test_extra_file_in_directory(self):
         data = {'org.openstack.Instance': 'Instance.yaml'}
-        self.loader.list.return_value = ['FlowClassifier.yaml',
-                                         'Instance.yaml']
-        all_ = [w for w in self.checker._valid_classes(data)]
+        self.loaded_package.list.return_value = ['FlowClassifier.yaml',
+                                                 'Instance.yaml']
+        all_ = [w for w in self.mv._valid_classes(data)]
         self.assertEqual(1, len(all_))
         report = all_[0]
         self.assertIn('File is not present in Manfiest, but it is in '
                       'filesystem: FlowClassifier.yaml', report.message)
 
-
-class LogoUICheckerTest(unittest.TestCase):
-    def setUp(self):
-        self.loader = mock.Mock()
-        self.checker = manifest.LogoUIChecker(self.loader)
-
     def test_missing_ui_file(self):
-        self.loader.exists.return_value = False
-        all_ = [w for w in self.checker._valid_ui('ui.yaml')]
+        self.loaded_package.exists.return_value = False
+        all_ = [w for w in self.mv._valid_ui('ui.yaml')]
         self.assertEqual(1, len(all_))
         report = all_[0]
         self.assertIn('There is no UI file mention in manifest "ui.yaml"',
                       report.message)
 
     def test_missing_logo_file(self):
-        self.loader.exists.return_value = False
-        all_ = [w for w in self.checker._valid_logo('logo.png')]
+        self.loaded_package.exists.return_value = False
+        all_ = [w for w in self.mv._valid_logo('logo.png')]
         self.assertEqual(1, len(all_))
         report = all_[0]
         self.assertIn('There is no Logo file mention in manifest "logo.png"',
                       report.message)
 
     def test_wrong_logo_type(self):
-        all_ = [w for w in self.checker._valid_logo([1, 2, 3])]
+        all_ = [w for w in self.mv._valid_logo([1, 2, 3])]
         self.assertEqual(1, len(all_))
         report = all_[0]
         self.assertIn('Logo is not a filename', report.message)
 
     def test_wrong_ui_type(self):
-        all_ = [w for w in self.checker._valid_ui([1, 2, 3])]
+        all_ = [w for w in self.mv._valid_ui([1, 2, 3])]
         self.assertEqual(1, len(all_))
         report = all_[0]
         self.assertIn('UI is not a filename', report.message)

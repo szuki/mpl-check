@@ -20,24 +20,18 @@ from mplcheck import error
 from mplcheck.validators import base
 
 
-class MuranoPLValidator(base.BaseValidator):
-    def __init__(self):
+SUPPORTED_FORMATS = frozenset(['1.0', '1.1', '1.2', '1.3', '1.4'])
+
+
+class MuranoPLValidator(base.YamlValidator):
+    def __init__(self, loaded_package):
+        super(MuranoPLValidator, self).__init__(loaded_package)
         self.yaql_checker = checkers.YaqlChecker()
 
-    def prepare_checks(self, loader):
-        def register(checker, key, required):
-            loader['manifest.yaml'][key].register(checker)
-        register(self._valid_format, 'Format')
-        register(self._valid_classes, 'Classes')
-        register(self._valid_string, 'Author')
-        register(self._valid_string, 'FullName')
-        register(self._valid_string, 'Name')
-        register(self._valid_tags, 'Tags')
-        register(self._valid_require, 'Require')
-        register(self._valid_type, 'Type')
-        register(self._valid_string, 'Description')
-        register(self._valid_ui, 'UI')
-        register(self._valid_logo, 'Logo')
+    def _valid_format(self, value):
+        if value not in SUPPORTED_FORMATS:
+            yield error.report.E001('Not Suported format of yaml "{0}"'
+                                    .format(value))
 
     def _valid_name(self, value):
         if value.startswith('__') or \

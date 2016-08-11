@@ -12,13 +12,48 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import six
 
+from mplcheck import error
 from mplcheck.validators import base
 
-UI_FILE = 'UI/ui.yaml'
+FIELDS_TYPE = frozenset(['string', 'boolean', 'text', 'integer', 'password',
+                         'clusterip', 'floatingip', 'domain', 'databaselist',
+                         'table', 'flavor', 'keypair', 'image', 'azone',
+                         'psqlDatabase'])
 
 
-class UiValidator(base.BaseValidator):
+class UiValidator(base.YamlValidator):
+    def _validate_templates(self, value):
+        pass
 
-    def __init__(self, context, name=UI_FILE):
-        super(UiValidator, self).__init__(name, context)
+    def _validate_forms(self, forms):
+        for named_form in forms:
+            for name, form in six.iteritems(named_form):
+                problems = self._valid_form(form['fields'])
+                if problems:
+                    for r in problems:
+                        yield r
+
+    def _valid_form(self, form):
+        for named_params in form:
+            params = named_params.values()[0]
+            for key, value in six.iteritems(params):
+                if key == 'type':
+                    if value not in FIELDS_TYPE:
+                        yield error.report.E80('Wrong type of field "{0}"'
+                                               .format(value),
+                                               value)
+                elif key == 'required':
+                    if isinstance(value, bool):
+                        yield error.report.E81('Value should be boolean "{0}"'
+                                               .format(value))
+                elif key == 'hidden':
+                    if isinstance(value, bool):
+                        yield error.report.E81('Value should be boolean "{0}"'
+                                               .format(value))
+                else:
+                    yield self._valid_string(value)
+
+    def _validate_application(self, value):
+        pass

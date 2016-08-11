@@ -20,60 +20,19 @@ from mplcheck import error
 from mplcheck.validators import base
 
 
-class Checker(object):
-    def __init__(self, loader):
-        self._loader = loader
-
-
-class ClassesChecker(Checker):
-    def _valid_classes(self, value):
-        files = set(value.values())
-        existing_files = set(self._loader.list('Classes'))
-        for fname in files - existing_files:
-            yield error.report.E050('File is present in Manfiest {fname}, '
-                                    'but not in filesystem'
-                                    .format(fname=fname),
-                                    fname)
-        for fname in existing_files - files:
-            yield error.report.W020('File is not present in Manfiest, but '
-                                    'it is in filesystem: {fname}'
-                                    .format(fname=fname), fname)
-
-
-class LogoUIChecker(Checker):
-    def _valid_ui(self, value):
-        if isinstance(value, six.string_types):
-            if not self._loader.exists(os.path.join('UI', value)):
-                yield error.report.E073('There is no UI file mention in '
-                                        'manifest "{0}"'.format(value), value)
-        else:
-            yield error.report.E072('UI is not a filename', value)
-
-    def _valid_logo(self, value):
-        if isinstance(value, six.string_types):
-            if not self._loader.exists(value):
-                yield error.report.E074('There is no Logo file mention in '
-                                        'manifest "{0}"'.format(value), value)
-        else:
-            yield error.report.E074('Logo is not a filename', value)
-
-
-class ManifestValidator(base.BaseValidator):
-    def prepare_checks(self, loader):
-        def register(checker, key, required):
-            loader['manifest.yaml'][key].register(checker)
-        register(self._valid_format, 'Format')
-        register(ClassesChecker(loader)._valid_classes, 'Classes')
-        register(self._valid_string, 'Author')
-        register(self._valid_string, 'FullName')
-        register(self._valid_string, 'Name')
-        register(self._valid_tags, 'Tags')
-        register(self._valid_require, 'Require')
-        register(self._valid_type, 'Type')
-        register(self._valid_string, 'Description')
-        ul_checker = LogoUIChecker(loader)
-        register(ul_checker._valid_ui, 'UI')
-        register(ul_checker._valid_logo, 'Logo')
+class ManifestValidator(base.YamlValidator):
+    def __init__(self, loaded_package):
+        super(ManifestValidator, self).__init__(loaded_package)
+        self.add_checker(self._valid_format, 'Format')
+        self.add_checker(self._valid_string, 'Author')
+        self.add_checker(self._valid_string, 'FullName')
+        self.add_checker(self._valid_string, 'Name')
+        self.add_checker(self._valid_tags, 'Tags')
+        self.add_checker(self._valid_require, 'Require')
+        self.add_checker(self._valid_type, 'Type')
+        self.add_checker(self._valid_string, 'Description')
+        self.add_checker(self._valid_ui, 'UI')
+        self.add_checker(self._valid_logo, 'Logo')
 
     def _valid_format(self, value):
         if value not in ['1.0', '1.1', '1.2', '1.3', '1.4']:
@@ -92,3 +51,32 @@ class ManifestValidator(base.BaseValidator):
         if value not in ('Application', 'Library'):
             yield error.report.E071('Type is invalid "{0}"'.format(value),
                                     value)
+
+    def _valid_ui(self, value):
+        if isinstance(value, six.string_types):
+            if not self._loaded_package.exists(os.path.join('UI', value)):
+                yield error.report.E073('There is no UI file mention in '
+                                        'manifest "{0}"'.format(value), value)
+        else:
+            yield error.report.E072('UI is not a filename', value)
+
+    def _valid_logo(self, value):
+        if isinstance(value, six.string_types):
+            if not self._loaded_package.exists(value):
+                yield error.report.E074('There is no Logo file mention in '
+                                        'manifest "{0}"'.format(value), value)
+        else:
+            yield error.report.E074('Logo is not a filename', value)
+
+    def _valid_classes(self, value):
+        files = set(value.values())
+        existing_files = set(self._loaded_package.list('Classes'))
+        for fname in files - existing_files:
+            yield error.report.E050('File is present in Manfiest {fname}, '
+                                    'but not in filesystem'
+                                    .format(fname=fname),
+                                    fname)
+        for fname in existing_files - files:
+            yield error.report.W020('File is not present in Manfiest, but '
+                                    'it is in filesystem: {fname}'
+                                    .format(fname=fname), fname)

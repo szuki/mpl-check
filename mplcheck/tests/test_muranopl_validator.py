@@ -13,6 +13,7 @@
 #    under the License.
 
 from copy import deepcopy
+import mock
 import unittest
 
 from mplcheck.validators.muranopl import MuranoPLValidator
@@ -54,7 +55,8 @@ MURANOPL_BASE = {
 
 class MuranoPlTests(unittest.TestCase):
     def setUp(self):
-        self.mpl_validator = MuranoPLValidator()
+        self.loaded_package = mock.Mock()
+        self.mpl_validator = MuranoPLValidator(self.loaded_package)
 
     def test_double_underscored_name(self):
         result = [r for r in self.mpl_validator._valid_name('__Instance')]

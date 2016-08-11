@@ -12,19 +12,71 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import itertools
 
 import six
 
 from mplcheck import error
 
 
+def check_version(method, version):
+    pass
+
+
 class BaseValidator(object):
-    def __init__(self):
-        self.data = {}
-        self._keys_checker = {}
+    def __init__(self, loaded_package, _filter='*'):
+        self._loaded_package = loaded_package
+        self._filter = _filter
+
+    def run(self):
+        chain_of_suits = []
+        for file_ in self._loaded_package.search_for(self._filter):
+            chain_of_suits.append(self._run_single(file_))
+        return itertools.chain(*chain_of_suits)
 
     def _valid_string(self, value):
         if not isinstance(value, six.string_types):
             yield error.report.E040('Value is not a string "{0}"'
                                     .format(value),
                                     value)
+
+
+class YamlValidator(BaseValidator):
+    def __init__(self, loaded_package):
+        super(YamlValidator, self).__init__(loaded_package)
+        self._checkers = {}
+
+    def add_checker(self, function, key=None, required=True):
+        checkers = self._checkers.setdefault(key, {'checkers': [],
+                                                   'required': False})
+        checkers['checkers'].append(function)
+        if key is None:
+            checkers['required'] = False
+        elif required:
+            checkers['required'] = True
+
+    def _run_single(self, file_):
+        ast = file_
+        reports_chain = []
+
+        def run_helper(name, checkers, data):
+            for checker in checkers:
+                result = checker(name, data)
+                if result:
+                    reports_chain.append(result)
+
+        file_check = self._keys_checker.get(None)
+        if file_check:
+            run_helper(None, file_check['checkers'], ast)
+        for key, value in six.iteritems(ast):
+            checkers = self._checkers.get(key)
+            if checkers:
+                run_helper(key, checkers['checkers'], ast[key])
+            else:
+                self._unknown_keyword(key, value)
+        missing = set(key for key, value in six.iteritems(self._checkers)
+                      if value['required']) - set(ast.keys())
+        for m in missing:
+            reports_chain.append([error.report.E020('Missing required key '
+                                 '"{0}"'.format(m), m)])
+        return itertools.chain(*reports_chain)
