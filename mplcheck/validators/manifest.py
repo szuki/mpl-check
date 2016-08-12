@@ -35,7 +35,7 @@ class ManifestValidator(base.YamlValidator):
         self.add_checker(self._valid_logo, 'Logo', False)
 
     def _valid_format(self, value):
-        if value not in ['1.0', '1.1', '1.2', '1.3', '1.4']:
+        if str(value) not in ['1.0', '1.1', '1.2', '1.3', '1.4']:
             yield error.report.E030('Not supported format version "{0}"'
                                     .format(value), value)
 
