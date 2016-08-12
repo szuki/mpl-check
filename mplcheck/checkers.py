@@ -159,6 +159,7 @@ class CheckCodeStructure(object):
             'empty': self.empty,
             'expression': self.yaql,
             'string': self.string,
+            'number': self.yaql,
         }
         self._yaql_checker = YaqlChecker()
 
@@ -186,13 +187,13 @@ class CheckCodeStructure(object):
                 for p in self._single_block(block):
                     yield p
         else:
-            for p in self._check_assigment(codeblocks):
+            for p in self._single_block(codeblocks):
                 yield p
 
     def _check_assigment(self, block):
         key = block.keys()[0]
         if not isinstance(key, six.string_types) or not key.startswith('$'):
-            yield error.report.E201('Not valid variable name'
+            yield error.report.E201('Not valid variable name '
                                     '"{0}"'.format(key), key)
         value = block.values()[0]
         for p in self.yaql(value):
@@ -202,6 +203,10 @@ class CheckCodeStructure(object):
         if isinstance(block, dict):
             for p in self._check_structure(block):
                 yield p
+
+    def _run_check(self, check, value):
+        for p in self._check_mappings[check](value):
+            yield p
 
     def _check_structure(self, block):
         block_keys = block.keys()
@@ -216,17 +221,30 @@ class CheckCodeStructure(object):
                 yield error.report.E200('Wrong code structure probably '
                                         'typo in keyword "{0}"'
                                         .format(key), key)
-                return
+            return
 
-        kset = set(value['keywords'].keys())
+        keywords = value.get('keywords', {})
+        kset = set(keywords.keys())
         block_keys_set = set(block_keys)
         for missing in (kset - block_keys_set):
-            if value['keywords'][missing]['required']:
+            if keywords[missing]['required']:
                 yield error.report.E200('Missing keyword "{0}" for "{1}" '
                                         'code structure'
                                         .format(missing, key), key)
         for unknown in (block_keys_set - kset - set([key])):
             yield error.report.E201('Unknown keyword "{0}" in "While"'
                                     .format(unknown), unknown)
-        for ckey, cvalue in six.iteritems(value['keywords']):
-            pass
+        for ckey, cvalue in six.iteritems(keywords):
+            check = cvalue['check']
+            data = block.get(ckey)
+            if not data:
+                continue
+            if isinstance(check, tuple):
+                for left, right in six.iteritems(data):
+                    for p in self._run_check(check[0], left):
+                        yield p
+                    for p in self._run_check(check[1], right):
+                        yield p
+            else:
+                for p in self._run_check(check, data):
+                    yield p

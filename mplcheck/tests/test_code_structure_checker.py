@@ -34,7 +34,7 @@ class CodeStructureTest(unittest.TestCase):
     def test_multiline(self):
         MULTILINE_BODY = [
             '$.deploy()',
-            {'res': 'new(YaqlStuff)'},
+            {'$res': 'new(YaqlStuff)'},
             '$.call($res)',
         ]
         self.g = self._checker.codeblock(MULTILINE_BODY)
@@ -47,7 +47,17 @@ class CodeStructureTest(unittest.TestCase):
         ]
         self.g = self._checker.codeblock(MULTILINE_BODY)
         p = next(self.g)
-        self.assertIn('Not valid variable name', p.message)
+        self.assertIn('Not valid variable name "1"', p.message)
+
+    def test_bad_assigment_case2(self):
+        MULTILINE_BODY = [
+            '$.deploy()',
+            {'res': 'new(YaqlStuff)'},
+            '$.call($res)',
+        ]
+        self.g = self._checker.codeblock(MULTILINE_BODY)
+        p = next(self.g)
+        self.assertIn('Not valid variable name "res"', p.message)
 
     def test_if(self):
         MULTILINE_BODY = [
@@ -73,12 +83,38 @@ class CodeStructureTest(unittest.TestCase):
              'Does': ['$.a()', '$.b()']}
         ]
         self.g = self._checker.codeblock(MULTILINE_BODY)
-        p = next(self.g)
-        self.assertIn('Unknown keyword "Does" in "While"',
-                      p.message)
+        p1 = next(self.g)
+        p2 = next(self.g)
+        self.assertItemsEqual([
+            'Unknown keyword "Does" in "While"',
+            'Missing keyword "Do" for "While" code structure'],
+            [p1.message, p2.message])
 
     def test_empty_return(self):
         MULTILINE_BODY = [
-            {'Return':''}
+            {'Return': ''}
         ]
         self.g = self._checker.codeblock(MULTILINE_BODY)
+
+    def test_switch(self):
+        MULTILINE_BODY = [
+            {'Switch': {
+                '$.black()': '$.single()',
+                '$.blue()': [
+                    '$.b()',
+                    {'w': 3}]},
+             'Default': '$.a()'}
+        ]
+        self.g = self._checker.codeblock(MULTILINE_BODY)
+
+    def test_error_under_while_in_if(self):
+        MULTILINE_BODY = [
+            {'If': 1,
+             'Then': {'While': '$.deploy()',
+                      'Do': [
+                          {'www': '$.a()'},
+                          '$.b()']}}
+        ]
+        self.g = self._checker.codeblock(MULTILINE_BODY)
+        p = next(self.g)
+        self.assertIn('Not valid variable name "www"', p.message)
