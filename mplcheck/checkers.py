@@ -226,7 +226,7 @@ class CheckCodeStructure(object):
                                         'code structure'
                                         .format(missing, key), key)
         for unknown in (block_keys_set - kset - set([key])):
-            yield error.report.E201('Unknown keyword "{0}"'
+            yield error.report.E201('Unknown keyword "{0}" in "While"'
                                     .format(unknown), unknown)
         for ckey, cvalue in six.iteritems(value['keywords']):
             pass
