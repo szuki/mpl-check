@@ -22,16 +22,13 @@ class UiValidatorTest(unittest.TestCase):
     def setUp(self):
         self.package = mock.Mock()
         self.ui_validator = ui.UiValidator(self.package)
+        self.g = None
 
-    def list(self, generator):
-        self.assertIsNot(generator, None,
-                         "None reports where returned from validate function")
-        return [v for v in generator]
-
-    def one_report(self, generator):
-        all_ = self.list(generator)
-        self.assertEqual(len(all_), 1)
-        return all_[0]
+    def tearDown(self):
+        problems = [p for p in self.g]
+        for p in problems:
+            print('Left errors:', p)
+        self.assertEqual(len(problems), 0)
 
     def test_forms(self):
         forms = [
@@ -43,8 +40,7 @@ class UiValidatorTest(unittest.TestCase):
                         'label': 'sth',
                         'description': 'something'
                     }}]}}]
-        with self.assertRaises(StopIteration):
-            next(self.ui_validator._validate_forms(forms))
+        self.g = self.ui_validator._validate_forms(forms)
 
     def test_forms_wrong_type(self):
         forms = [
@@ -56,5 +52,6 @@ class UiValidatorTest(unittest.TestCase):
                         'label': 'sth',
                         'description': 'something'
                     }}]}}]
-        report = self.one_report(self.ui_validator._validate_forms(forms))
+        self.g = self.ui_validator._validate_forms(forms)
+        report = next(self.g)
         self.assertIn('Wrong type of field "int"', report.message)

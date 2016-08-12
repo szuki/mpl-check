@@ -15,7 +15,7 @@
 import re
 import six
 
-from mplcheck import checkers
+from mplcheck.checkers import yaql_checker
 from mplcheck import error
 from mplcheck.validators import base
 
@@ -26,7 +26,7 @@ SUPPORTED_FORMATS = frozenset(['1.0', '1.1', '1.2', '1.3', '1.4'])
 class MuranoPLValidator(base.YamlValidator):
     def __init__(self, loaded_package):
         super(MuranoPLValidator, self).__init__(loaded_package)
-        self.yaql_checker = checkers.YaqlChecker()
+        self.yaql_checker = yaql_checker.YaqlChecker()
 
     def _valid_format(self, value):
         if value not in SUPPORTED_FORMATS:

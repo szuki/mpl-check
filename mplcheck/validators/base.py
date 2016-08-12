@@ -56,16 +56,16 @@ class YamlValidator(BaseValidator):
             checkers['required'] = True
 
     def _run_single(self, file_):
-        ast = file_
+        ast = file_.yaml()
         reports_chain = []
 
         def run_helper(name, checkers, data):
             for checker in checkers:
-                result = checker(name, data)
+                result = checker(data)
                 if result:
                     reports_chain.append(result)
 
-        file_check = self._keys_checker.get(None)
+        file_check = self._checkers.get(None)
         if file_check:
             run_helper(None, file_check['checkers'], ast)
         for key, value in six.iteritems(ast):

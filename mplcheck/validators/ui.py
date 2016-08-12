@@ -53,7 +53,8 @@ class UiValidator(base.YamlValidator):
                         yield error.report.E81('Value should be boolean "{0}"'
                                                .format(value))
                 else:
-                    yield self._valid_string(value)
+                    for p in self._valid_string(value):
+                        yield p
 
     def _validate_application(self, value):
         pass

@@ -23,16 +23,16 @@ from mplcheck.validators import base
 class ManifestValidator(base.YamlValidator):
     def __init__(self, loaded_package):
         super(ManifestValidator, self).__init__(loaded_package)
-        self.add_checker(self._valid_format, 'Format')
-        self.add_checker(self._valid_string, 'Author')
+        self.add_checker(self._valid_format, 'Format', False)
+        self.add_checker(self._valid_string, 'Author', False)
         self.add_checker(self._valid_string, 'FullName')
-        self.add_checker(self._valid_string, 'Name')
-        self.add_checker(self._valid_tags, 'Tags')
-        self.add_checker(self._valid_require, 'Require')
+        self.add_checker(self._valid_string, 'Name', False)
+        self.add_checker(self._valid_tags, 'Tags', False)
+        self.add_checker(self._valid_require, 'Require', False)
         self.add_checker(self._valid_type, 'Type')
         self.add_checker(self._valid_string, 'Description')
-        self.add_checker(self._valid_ui, 'UI')
-        self.add_checker(self._valid_logo, 'Logo')
+        self.add_checker(self._valid_ui, 'UI', False)
+        self.add_checker(self._valid_logo, 'Logo', False)
 
     def _valid_format(self, value):
         if value not in ['1.0', '1.1', '1.2', '1.3', '1.4']:

@@ -14,18 +14,19 @@
 
 import unittest
 
-from mplcheck import checkers
+from mplcheck.checkers import code_structure
 
 
 class CodeStructureTest(unittest.TestCase):
     def setUp(self):
-        self._checker = checkers.CheckCodeStructure()
+        self._checker = code_structure.CheckCodeStructure()
         self.g = None
 
     def tearDown(self):
-        with self.assertRaises(StopIteration):
-            while True:
-                print('Left Error: ', next(self.g))
+        problems = [e for e in self.g]
+        for p in problems:
+            print('Left Error: ', p)
+        self.assertEqual(len(problems), 0)
 
     def test_simple(self):
         SIMPLE_BODY = '$.deploy()'
@@ -64,7 +65,7 @@ class CodeStructureTest(unittest.TestCase):
             {'If': '$.deploy()',
              'Then': [
                  '$.w()',
-                 {'abc': 3}]}
+                 {'$abc': '$a'}]}
         ]
         self.g = self._checker.codeblock(MULTILINE_BODY)
 
