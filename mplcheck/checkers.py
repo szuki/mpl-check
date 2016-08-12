@@ -12,6 +12,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import six
 import yaql
 
 from mplcheck import error
@@ -88,3 +89,144 @@ class YaqlChecker(object):
         except TypeError:
             return False
         return True
+
+
+def check_req(check, required=True):
+    return locals()
+
+CODE_STRUCTURE = {
+    'Try': {
+        'check': 'codeblock',
+        'keywords': {
+            'Catch': check_req('empty'),
+            'With': check_req('string'),
+            'As': check_req('string'),
+            'Do': check_req('codeblock'),
+            'Else': check_req('codeblock', False),
+            'Finally': check_req('codeblock', False)}},
+    'Parallel': {
+        'keywords': {
+            'Limit': check_req('codeblock', False)},
+        'check': 'codeblock',
+    },
+    'Repeat': {
+        'check': 'number',
+        'keywords': {
+            'Do': check_req('codeblock')}},
+    'If': {
+        'check': 'predicate',
+        'keywords': {
+            'Then': check_req('codeblock'),
+            'Else': check_req('codeblock', False)}
+    },
+    'Breaks': {
+        'check': 'empty',
+    },
+    'Return': {
+        'check': 'expression',
+    },
+    'While': {
+        'check': 'predicate',
+        'keywords': {
+            'Do': check_req('codeblock')}
+    },
+    'For': {
+        'check': 'string',
+        'keywords': {
+            'In': check_req('expression'),
+            'Do': check_req('codeblock')}
+    },
+    'Match': {
+        'check': {'expression': 'codeblock'},
+        'keywords': {
+            'Value': check_req('expression'),
+            'Default': check_req('codeblock'),
+        }
+    },
+    'Switch': {
+        'check': {'predicate': 'codeblock'},
+        'keywords': {
+            'Default': check_req('codeblock')}
+    }
+}
+
+
+class CheckCodeStructure(object):
+    def __init__(self):
+        self._check_mappings = {
+            'codeblock': self.codeblock,
+            'predictate': self.yaql,
+            'empty': self.empty,
+            'expression': self.yaql,
+            'string': self.string,
+        }
+        self._yaql_checker = YaqlChecker()
+
+    def string(self, value):
+        if isinstance(value, six.string_types):
+            yield error.report.E203('Value should be string type'
+                                    '"{0}"'.format(value), value)
+
+    def empty(self, value):
+        if value:
+            yield error.report.E200('There should be no value here '
+                                    '"{0}"'.format(value), value)
+
+    def yaql(self, value):
+        if not self._yaql_checker(value):
+            yield error.report.E202('Not valid yaql expression '
+                                    '"{0}"'.format(value), value)
+
+    def codeblock(self, codeblocks):
+        if isinstance(codeblocks, six.string_types):
+            for p in self._single_block(codeblocks):
+                yield p
+        elif isinstance(codeblocks, list):
+            for block in codeblocks:
+                for p in self._single_block(block):
+                    yield p
+        else:
+            for p in self._check_assigment(codeblocks):
+                yield p
+
+    def _check_assigment(self, block):
+        key = block.keys()[0]
+        if not isinstance(key, six.string_types) or not key.startswith('$'):
+            yield error.report.E201('Not valid variable name'
+                                    '"{0}"'.format(key), key)
+        value = block.values()[0]
+        for p in self.yaql(value):
+            yield p
+
+    def _single_block(self, block):
+        if isinstance(block, dict):
+            for p in self._check_structure(block):
+                yield p
+
+    def _check_structure(self, block):
+        block_keys = block.keys()
+        for key, value in six.iteritems(CODE_STRUCTURE):
+            if key in block_keys:
+                break
+        else:
+            if len(block_keys) == 1:
+                for p in self._check_assigment(block):
+                    yield p
+            else:
+                yield error.report.E200('Wrong code structure probably '
+                                        'typo in keyword "{0}"'
+                                        .format(key), key)
+                return
+
+        kset = set(value['keywords'].keys())
+        block_keys_set = set(block_keys)
+        for missing in (kset - block_keys_set):
+            if value['keywords'][missing]['required']:
+                yield error.report.E200('Missing keyword "{0}" for "{1}" '
+                                        'code structure'
+                                        .format(missing, key), key)
+        for unknown in (block_keys_set - kset - set([key])):
+            yield error.report.E201('Unknown keyword "{0}"'
+                                    .format(unknown), unknown)
+        for ckey, cvalue in six.iteritems(value['keywords']):
+            pass
