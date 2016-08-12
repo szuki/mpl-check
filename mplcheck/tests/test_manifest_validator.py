@@ -26,70 +26,70 @@ class ManfiestValidatorTests(unittest.TestCase):
         self.exists.return_value = [True, True]
         self.loaded_package = mock.Mock()
         self.mv = manifest.ManifestValidator(self.loaded_package)
+        self.g = []
+
+    def tearDown(self):
+        problems = [p for p in self.g]
+        for p in problems:
+            print('Left errors:', p)
+        self.assertEqual(len(problems), 0)
+
+    def test_format_as_number(self):
+        self.g = self.mv._valid_format(1.3)
 
     def test_wrong_format(self):
-        all_ = [v for v in self.mv._valid_format('0.9')]
-        self.assertEqual(1, len(all_))
-        report = all_[0]
+        self.g = self.mv._valid_format('0.9')
         self.assertIn('Not supported format version "0.9"',
-                      report.message)
+                      next(self.g).message)
+
+    def test_format(self):
+        self.g = self.mv._valid_format('MuranoPL/1.0')
+
+    def test_unsupported_format(self):
+        self.g = self.mv._valid_format('Heat.HOT')
+        self.assertIn('Not supported format version "Heat.HOT"',
+                      next(self.g).message)
 
     def test_wrong_type(self):
-        all_ = [w for w in self.mv._valid_type('Shared Library')]
-        self.assertEqual(1, len(all_))
-        report = all_[0]
-        self.assertIn('Type is invalid "Shared Library"', report.message)
+        self.g = self.mv._valid_type('Shared Library')
+        self.assertIn('Type is invalid "Shared Library"', next(self.g).message)
 
     def test_wrong_require_type(self):
-        all_ = [w for w in self.mv._valid_require([1, 2, 3])]
-        self.assertEqual(1, len(all_))
-        report = all_[0]
-        self.assertIn('Require is not a dict type', report.message)
+        self.g = self.mv._valid_require([1, 2, 3])
+        self.assertIn('Require is not a dict type', next(self.g).message)
 
     def test_not_existing_file(self):
         data = {'org.openstack.Flow': 'FlowClassifier.yaml',
                 'org.openstack.Instance': 'Instance.yaml'}
         self.loaded_package.list.return_value = ['FlowClassifier.yaml']
-        all_ = [w for w in self.mv._valid_classes(data)]
-        self.assertEqual(1, len(all_))
-        report = all_[0]
+        self.g = self.mv._valid_classes(data)
         self.assertIn('File is present in Manfiest Instance.yaml, but not in '
-                      'filesystem', report.message)
+                      'filesystem', next(self.g).message)
 
     def test_extra_file_in_directory(self):
         data = {'org.openstack.Instance': 'Instance.yaml'}
         self.loaded_package.list.return_value = ['FlowClassifier.yaml',
                                                  'Instance.yaml']
-        all_ = [w for w in self.mv._valid_classes(data)]
-        self.assertEqual(1, len(all_))
-        report = all_[0]
+        self.g = self.mv._valid_classes(data)
         self.assertIn('File is not present in Manfiest, but it is in '
-                      'filesystem: FlowClassifier.yaml', report.message)
+                      'filesystem: FlowClassifier.yaml', next(self.g).message)
 
     def test_missing_ui_file(self):
         self.loaded_package.exists.return_value = False
-        all_ = [w for w in self.mv._valid_ui('ui.yaml')]
-        self.assertEqual(1, len(all_))
-        report = all_[0]
+        self.g = self.mv._valid_ui('ui.yaml')
         self.assertIn('There is no UI file mention in manifest "ui.yaml"',
-                      report.message)
+                      next(self.g).message)
 
     def test_missing_logo_file(self):
         self.loaded_package.exists.return_value = False
-        all_ = [w for w in self.mv._valid_logo('logo.png')]
-        self.assertEqual(1, len(all_))
-        report = all_[0]
+        self.g = self.mv._valid_logo('logo.png')
         self.assertIn('There is no Logo file mention in manifest "logo.png"',
-                      report.message)
+                      next(self.g).message)
 
     def test_wrong_logo_type(self):
-        all_ = [w for w in self.mv._valid_logo([1, 2, 3])]
-        self.assertEqual(1, len(all_))
-        report = all_[0]
-        self.assertIn('Logo is not a filename', report.message)
+        self.g = self.mv._valid_logo([1, 2, 3])
+        self.assertIn('Logo is not a filename', next(self.g).message)
 
     def test_wrong_ui_type(self):
-        all_ = [w for w in self.mv._valid_ui([1, 2, 3])]
-        self.assertEqual(1, len(all_))
-        report = all_[0]
-        self.assertIn('UI is not a filename', report.message)
+        self.g = self.mv._valid_ui([1, 2, 3])
+        self.assertIn('UI is not a filename', next(self.g).message)
