@@ -24,7 +24,7 @@ def check_version(method, version):
 
 
 class BaseValidator(object):
-    def __init__(self, loaded_package, _filter='*'):
+    def __init__(self, loaded_package, _filter='.*'):
         self._loaded_package = loaded_package
         self._filter = _filter
 

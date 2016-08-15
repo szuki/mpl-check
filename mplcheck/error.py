@@ -24,6 +24,13 @@ class CheckError(Exception):
         self.column = column
         self.source = source
 
+    def to_dict(self):
+        fields = ('code', 'message', 'filename', 'line', 'column', 'source')
+        serialized = {}
+        for f in fields:
+            serialized[f] = self.__getattribute__(f)
+        return serialized
+
     def __repr__(self):
         return 'CheckError({0})'.format(self.message)
 

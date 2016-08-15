@@ -15,15 +15,35 @@
 
 import abc
 import os
+import re
 import zipfile
 
 import six
+import yaml
 
+
+class FileWrapper(object):
+
+    def __init__(self, path, file_content):
+        self._raw = file_content
+        try:
+            self._yaml = yaml.safe_load(file_content)
+        except yaml.YAMLError as e:
+            print path
+            print e
+            self._yaml = None
+
+    def raw(self):
+        return self._raw
+
+    def yaml(self):
+        return self._yaml
 
 @six.add_metaclass(abc.ABCMeta)
 class BaseLoader(object):
     def __init__(self, filename):
         self.filename = filename
+        self._cached_files = dict()
 
     @classmethod
     @abc.abstractmethod
@@ -31,16 +51,27 @@ class BaseLoader(object):
         pass
 
     @abc.abstractmethod
-    def open_file(self, path, mode='r'):
+    def list_files(self, subdir=None):
+        pass
+
+    @abc.abstractmethod
+    def _open_file(self, path, mode='r'):
         pass
 
     @abc.abstractmethod
     def exists(self, name):
         pass
 
-    def read_file(self, path):
-        with self.open_file(path) as fp:
-            return fp.read()
+    def search_for(self, regex='.*'):
+        r = re.compile(regex)
+        return (self.read(f) for f in self.list_files() if r.match(f))
+
+    def read(self, path):
+        if path in self._cached_files:
+            return self._cached_files[path]
+        with self._open_file(path) as fp:
+            self._cached_files[path] = FileWrapper(path, fp.read())
+            return self._cached_files[path]
 
 
 class DirectoryLoader(BaseLoader):
@@ -51,7 +82,7 @@ class DirectoryLoader(BaseLoader):
             return cls(filename)
         return None
 
-    def open_file(self, path, mode='r'):
+    def _open_file(self, path, mode='r'):
         return open(os.path.join(self.filename, path), mode)
 
     def list_files(self, subdir=None):
@@ -84,7 +115,7 @@ class ZipLoader(BaseLoader):
         except zipfile.BadZipfile:
             return None
 
-    def open_file(self, name, mode='r'):
+    def _open_file(self, name, mode='r'):
         return self._zipfile.open(name, mode)
 
     def list_files(self, subdir=None):

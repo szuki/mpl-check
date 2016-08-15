@@ -23,8 +23,9 @@ from mplcheck.validators import base
 class ManifestValidator(base.YamlValidator):
     def __init__(self, loaded_package):
         super(ManifestValidator, self).__init__(loaded_package)
-        self.add_checker(self._valid_format, 'Format', False)
-        self.add_checker(self._valid_string, 'Author', False)
+        self._filter = 'manifest.yaml'
+        self.add_checker(self._valid_format, 'Format')
+        self.add_checker(self._valid_string, 'Author')
         self.add_checker(self._valid_string, 'FullName')
         self.add_checker(self._valid_string, 'Name', False)
         self.add_checker(self._valid_tags, 'Tags', False)

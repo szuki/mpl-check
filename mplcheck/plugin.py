@@ -12,17 +12,17 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-# THIS FILE IS MANAGED BY THE GLOBAL REQUIREMENTS REPO - DO NOT EDIT
-import setuptools
+import abc
 
-# In python < 2.7.4, a lazy loading of package `pbr` will break
-# setuptools if some other modules registered functions in `atexit`.
-# solution from: http://bugs.python.org/issue15881#msg170215
-try:
-    import multiprocessing  # noqa
-except ImportError:
-    pass
+import six
 
-setuptools.setup(
-    setup_requires=['pbr>=1.8'],
-    pbr=True)
+@six.add_metaclass(abc.ABCMeta)
+class Plugin(object):
+
+    @abc.abstractmethod
+    def validators(self):
+        pass
+
+    @abc.abstractmethod
+    def errors(self):
+        pass
