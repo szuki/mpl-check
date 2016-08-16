@@ -97,7 +97,10 @@ class DirectoryLoader(BaseLoader):
                 os.path.relpath(
                     os.path.join(dirpath, filename), self.filename)
                 for filename in filenames)
-        return files
+        if subdir is None:
+            return files
+        subdir_len = len(subdir)
+        return [file_[subdir_len:].lstrip('/') for file_ in files]
 
     def exists(self, name):
         return os.path.exists(os.path.join(self.filename, name))
@@ -123,7 +126,8 @@ class ZipLoader(BaseLoader):
         files = self._zipfile.namelist()
         if subdir is None:
             return files
-        return [file_ for file_ in files
+        subdir_len = len(subdir)
+        return [file_[subdir_len:].lstrip('/') for file_ in files
                 if file_.startswith(subdir)]
 
     def exists(self, name):
