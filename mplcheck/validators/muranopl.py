@@ -16,6 +16,7 @@ import re
 import six
 
 from mplcheck.checkers import yaql_checker
+from mplcheck.checkers import code_structure
 from mplcheck import error
 from mplcheck.validators import base
 
@@ -25,13 +26,15 @@ SUPPORTED_FORMATS = frozenset(['1.0', '1.1', '1.2', '1.3', '1.4'])
 
 class MuranoPLValidator(base.YamlValidator):
     def __init__(self, loaded_package):
-        super(MuranoPLValidator, self).__init__(loaded_package)
+        super(MuranoPLValidator, self).__init__(loaded_package,
+                                                'Classes/.*\.yaml$')
         self.yaql_checker = yaql_checker.YaqlChecker()
+        self.code_structure = code_structure.CheckCodeStructure()
 
-    def _valid_format(self, value):
-        if value not in SUPPORTED_FORMATS:
-            yield error.report.E001('Not Suported format of yaml "{0}"'
-                                    .format(value))
+        self.add_checker(self._valid_name, 'Name', False)
+        self.add_checker(self._valid_extends, 'Extends', False)
+        self.add_checker(self._valid_methods, 'Methods', False)
+        self.add_checker(self._valid_methods, 'Namespaces', False)
 
     def _valid_name(self, value):
         if value.startswith('__') or \
@@ -101,6 +104,10 @@ class MuranoPLValidator(base.YamlValidator):
 
     def _valid_methods(self, value):
         for method_name, method_data in six.iteritems(value):
+            if not isinstance(method_data, dict):
+                yield error.report.E044('Method is not a dict',
+                                        method_name)
+                return
             scope = method_data.get('Scope')
             if scope is not None and scope not in ('Public', 'Session'):
                 yield error.report.E044('Wrong Scope "{0}"'.format(scope),
@@ -110,19 +117,5 @@ class MuranoPLValidator(base.YamlValidator):
                 yield error.report.E045('Body is not a list or scalar/yaql '
                                         'expression', body)
             else:
-                for r in self._valid_method_body(body):
+                for r in self.code_structure.codeblock(body):
                     yield r
-
-    def _valid_method_body(self, expr):
-        if isinstance(expr, dict):
-            for v in six.itervalues(expr):
-                for r in self._valid_method_body(v):
-                    yield r
-        elif isinstance(expr, list):
-            for v in expr:
-                for r in self._valid_method_body(v):
-                    yield r
-        elif isinstance(expr, six.string_types):
-            if not self.yaql_checker(expr):
-                yield error.report.E046('Error in expression "{0}"'
-                                        .format(expr), expr)

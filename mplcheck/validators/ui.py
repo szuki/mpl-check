@@ -24,6 +24,9 @@ FIELDS_TYPE = frozenset(['string', 'boolean', 'text', 'integer', 'password',
 
 
 class UiValidator(base.YamlValidator):
+    def __init__(self, loaded_package):
+        super(UiValidator, self).__init__(loaded_package, 'UI/.*\.yaml$')
+
     def _validate_templates(self, value):
         pass
 

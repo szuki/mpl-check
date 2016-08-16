@@ -4,6 +4,6 @@ from mplcheck.validators.ui import UiValidator
 
 VALIDATORS = [
     ManifestValidator,
-    # MuranoPLValidator,
-    # UiValidator
+    MuranoPLValidator,
+    UiValidator
 ]

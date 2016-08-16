@@ -42,8 +42,8 @@ class BaseValidator(object):
 
 
 class YamlValidator(BaseValidator):
-    def __init__(self, loaded_package):
-        super(YamlValidator, self).__init__(loaded_package)
+    def __init__(self, loaded_package, _filter='.*'):
+        super(YamlValidator, self).__init__(loaded_package, _filter)
         self._checkers = {}
 
     def add_checker(self, function, key=None, required=True):
@@ -58,12 +58,14 @@ class YamlValidator(BaseValidator):
     def _run_single(self, file_):
         multi_documents = file_.yaml()
         reports_chain = []
+
+        def run_helper(name, checkers, data):
+            for checker in checkers:
+                result = checker(data)
+                if result:
+                    reports_chain.append(result)
+
         for ast in multi_documents:
-            def run_helper(name, checkers, data):
-                for checker in checkers:
-                    result = checker(data)
-                    if result:
-                        reports_chain.append(result)
 
             file_check = self._checkers.get(None)
             if file_check:
