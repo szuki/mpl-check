@@ -122,9 +122,11 @@ class CheckCodeStructure(object):
         if not isinstance(key, six.string_types) or not key.startswith('$'):
             yield error.report.E201('Not valid variable name '
                                     '"{0}"'.format(key), key)
+
         value = block.values()[0]
-        for p in self.yaql(value):
-            yield p
+        if isinstance(value, six.string_types):
+            for p in self.yaql(value):
+                yield p
 
     def _single_block(self, block):
         if isinstance(block, dict):

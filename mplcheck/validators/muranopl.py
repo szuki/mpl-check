@@ -34,7 +34,8 @@ class MuranoPLValidator(base.YamlValidator):
         self.add_checker(self._valid_name, 'Name', False)
         self.add_checker(self._valid_extends, 'Extends', False)
         self.add_checker(self._valid_methods, 'Methods', False)
-        self.add_checker(self._valid_methods, 'Namespaces', False)
+        self.add_checker(self._valid_namespaces, 'Namespaces', False)
+        self.add_checker(self._valid_properties, 'Properties', False)
 
     def _valid_name(self, value):
         if value.startswith('__') or \
@@ -79,6 +80,12 @@ class MuranoPLValidator(base.YamlValidator):
                                             usage)
             contract = values.get('Contract')
             if contract:
+                if isinstance(contract, list):
+                    if len(contract) > 1:
+                        #XXX:
+                        pass
+                    else:
+                        contract = contract[0]
                 if not self.yaql_checker(contract):
                     yield error.report.E048('Contract is not valid yaql "{0}"'
                                             .format(contract), contract)
@@ -105,7 +112,7 @@ class MuranoPLValidator(base.YamlValidator):
     def _valid_methods(self, value):
         for method_name, method_data in six.iteritems(value):
             if not isinstance(method_data, dict):
-                yield error.report.E044('Method is not a dict',
+                yield error.report.E046('Method is not a dict',
                                         method_name)
                 return
             scope = method_data.get('Scope')
@@ -113,7 +120,7 @@ class MuranoPLValidator(base.YamlValidator):
                 yield error.report.E044('Wrong Scope "{0}"'.format(scope),
                                         method_data)
             body = method_data.get('Body')
-            if not isinstance(body, (list, six.string_types)):
+            if not isinstance(body, (list, six.string_types, dict)):
                 yield error.report.E045('Body is not a list or scalar/yaql '
                                         'expression', body)
             else:

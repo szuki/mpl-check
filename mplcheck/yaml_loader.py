@@ -47,7 +47,7 @@ class YamlSequence(YamlObject, list):
     pass
 
 
-class YamlString(YamlObject, six.text_type):
+class YamlString(YamlObject, bytes):
     pass
 
 

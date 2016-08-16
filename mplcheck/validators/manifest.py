@@ -28,6 +28,7 @@ class ManifestValidator(base.YamlValidator):
         self.add_checker(self._valid_string, 'Author', False)
         self.add_checker(self._valid_string, 'FullName')
         self.add_checker(self._valid_string, 'Name', False)
+        self.add_checker(self._valid_classes, 'Classes', False)
         self.add_checker(self._valid_tags, 'Tags', False)
         self.add_checker(self._valid_require, 'Require', False)
         self.add_checker(self._valid_type, 'Type')
@@ -77,7 +78,7 @@ class ManifestValidator(base.YamlValidator):
 
     def _valid_classes(self, value):
         files = set(value.values())
-        existing_files = set(self._loaded_package.list('Classes'))
+        existing_files = set(self._loaded_package.list_files('Classes'))
         for fname in files - existing_files:
             yield error.report.E050('File is present in Manfiest {fname}, '
                                     'but not in filesystem'

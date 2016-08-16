@@ -28,6 +28,7 @@ class FileWrapper(object):
 
     def __init__(self, path, file_content):
         self._raw = file_content
+        self._path = path
         try:
             self._yaml = yaml.load_all(file_content, yaml_loader.YamlLoader)
         except yaml.YAMLError as e:
