@@ -26,6 +26,9 @@ FIELDS_TYPE = frozenset(['string', 'boolean', 'text', 'integer', 'password',
 class UiValidator(base.YamlValidator):
     def __init__(self, loaded_package):
         super(UiValidator, self).__init__(loaded_package, 'UI/.*\.yaml$')
+        self.add_checker(self._validate_templates, 'Templates', False)
+        self.add_checker(self._validate_forms, 'Forms', False)
+        self.add_checker(self._validate_application, 'Application', False)
 
     def _validate_templates(self, value):
         pass
@@ -33,10 +36,7 @@ class UiValidator(base.YamlValidator):
     def _validate_forms(self, forms):
         for named_form in forms:
             for name, form in six.iteritems(named_form):
-                problems = self._valid_form(form['fields'])
-                if problems:
-                    for r in problems:
-                        yield r
+                yield self._valid_form(form['fields'])
 
     def _valid_form(self, form):
         for named_params in form:
@@ -56,8 +56,7 @@ class UiValidator(base.YamlValidator):
                         yield error.report.E81('Value should be boolean "{0}"'
                                                .format(value))
                 else:
-                    for p in self._valid_string(value):
-                        yield p
+                    yield self._valid_string(value)
 
     def _validate_application(self, value):
         pass

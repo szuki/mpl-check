@@ -66,7 +66,6 @@ class YamlValidator(BaseValidator):
                     reports_chain.append(result)
 
         for ast in multi_documents:
-
             file_check = self._checkers.get(None)
             if file_check:
                 run_helper(None, file_check['checkers'], ast)

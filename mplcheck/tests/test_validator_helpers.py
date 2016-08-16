@@ -12,15 +12,32 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import types
 import unittest
 
 
 class BaseValidatorTestClass(unittest.TestCase):
     def setUp(self):
-        self.g = []
+        self._g = []
 
     def tearDown(self):
         problems = [p for p in self.g]
         for p in problems:
             print('Left errors:', p)
         self.assertEqual(len(problems), 0)
+
+    def _linear(self, error_chain):
+        for e in error_chain:
+            if isinstance(e, types.GeneratorType):
+                for w in self._linear(e):
+                    yield w
+            else:
+                yield e
+
+    def get_g(self):
+        return self._g
+
+    def set_g(self, value):
+        self._g = self.linear(value)
+
+    g = property(get_g, set_g)

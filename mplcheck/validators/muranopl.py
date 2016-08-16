@@ -81,8 +81,7 @@ class MuranoPLValidator(base.YamlValidator):
                                             contract)
         elif isinstance(contract, dict):
             for c_key, c_value in six.iteritems(contract):
-                for p in self._valid_contract(c_value):
-                    yield p
+                yield self._valid_contract(c_value)
         elif isinstance(contract, six.string_types):
             if not self.yaql_checker(contract):
                 yield error.report.E048('Contract is not valid '
@@ -109,8 +108,7 @@ class MuranoPLValidator(base.YamlValidator):
                                             usage)
             contract = values.get('Contract')
             if contract:
-                for p in self._valid_contract(contract):
-                    yield p
+                yield self._valid_contract(contract)
             else:
                 yield error.report.E047('Missing Contract in property "{0}"'
                                         .format(property_), property_)
@@ -142,10 +140,8 @@ class MuranoPLValidator(base.YamlValidator):
                 yield error.report.E044('Wrong Scope "{0}"'.format(scope),
                                         method_data)
             body = method_data.get('Body')
-            print body
             if not isinstance(body, (list, six.string_types, dict)):
                 yield error.report.E045('Body is not a list or scalar/yaql '
                                         'expression', body)
             else:
-                for r in self.code_structure.codeblock(body):
-                    yield r
+                yield self.code_structure.codeblock(body)

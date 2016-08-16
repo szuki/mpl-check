@@ -107,15 +107,12 @@ class CheckCodeStructure(object):
 
     def codeblock(self, codeblocks):
         if isinstance(codeblocks, six.string_types):
-            for p in self._single_block(codeblocks):
-                yield p
+            yield self._single_block(codeblocks)
         elif isinstance(codeblocks, list):
             for block in codeblocks:
-                for p in self._single_block(block):
-                    yield p
+                yield self._single_block(block)
         else:
-            for p in self._single_block(codeblocks):
-                yield p
+            yield self._single_block(codeblocks)
 
     def _check_assigment(self, block):
         key = block.keys()[0]
@@ -125,20 +122,16 @@ class CheckCodeStructure(object):
 
         value = block.values()[0]
         if isinstance(value, six.string_types):
-            for p in self.yaql(value):
-                yield p
+            yield self.yaql(value)
 
     def _single_block(self, block):
         if isinstance(block, dict):
-            for p in self._check_structure(block):
-                yield p
+            yield self._check_structure(block)
         elif isinstance(block, six.string_types):
-            for p in self.yaql(block):
-                yield p
+            yield self.yaql(block)
 
     def _run_check(self, check, value):
-        for p in self._check_mappings[check](value):
-            yield p
+        yield self._check_mappings[check](value)
 
     def _check_structure(self, block):
         block_keys = block.keys()
@@ -147,8 +140,7 @@ class CheckCodeStructure(object):
                 break
         else:
             if len(block_keys) == 1:
-                for p in self._check_assigment(block):
-                    yield p
+                yield self._check_assigment(block)
             else:
                 yield error.report.E200('Wrong code structure probably '
                                         'typo in keyword "{0}"'
@@ -173,10 +165,7 @@ class CheckCodeStructure(object):
                 continue
             if isinstance(check, tuple):
                 for left, right in six.iteritems(data):
-                    for p in self._run_check(check[0], left):
-                        yield p
-                    for p in self._run_check(check[1], right):
-                        yield p
+                    yield self._run_check(check[0], left)
+                    yield self._run_check(check[1], right)
             else:
-                for p in self._run_check(check, data):
-                    yield p
+                yield self._run_check(check, data)
