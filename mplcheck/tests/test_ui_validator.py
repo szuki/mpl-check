@@ -13,22 +13,16 @@
 #    under the License.
 
 import mock
-import unittest
 
+from mplcheck.tests import test_validator_helpers as helpers
 from mplcheck.validators import ui
 
 
-class UiValidatorTest(unittest.TestCase):
+class UiValidatorTest(helpers.BaseValidatorTestClass):
     def setUp(self):
+        super(UiValidatorTest, self).setUp()
         self.package = mock.Mock()
         self.ui_validator = ui.UiValidator(self.package)
-        self.g = None
-
-    def tearDown(self):
-        problems = [p for p in self.g]
-        for p in problems:
-            print('Left errors:', p)
-        self.assertEqual(len(problems), 0)
 
     def test_forms(self):
         forms = [
@@ -53,5 +47,4 @@ class UiValidatorTest(unittest.TestCase):
                         'description': 'something'
                     }}]}}]
         self.g = self.ui_validator._validate_forms(forms)
-        report = next(self.g)
-        self.assertIn('Wrong type of field "int"', report.message)
+        self.assertIn('Wrong type of field "int"', next(self.g).message)

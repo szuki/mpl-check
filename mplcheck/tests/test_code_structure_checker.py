@@ -12,21 +12,14 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import unittest
-
 from mplcheck.checkers import code_structure
+from mplcheck.tests import test_validator_helpers as helpers
 
 
-class CodeStructureTest(unittest.TestCase):
+class CodeStructureTest(helpers.BaseValidatorTestClass):
     def setUp(self):
+        super(CodeStructureTest, self).setUp()
         self._checker = code_structure.CheckCodeStructure()
-        self.g = None
-
-    def tearDown(self):
-        problems = [e for e in self.g]
-        for p in problems:
-            print('Left Error: ', p)
-        self.assertEqual(len(problems), 0)
 
     def test_simple(self):
         SIMPLE_BODY = '$.deploy()'
@@ -47,8 +40,7 @@ class CodeStructureTest(unittest.TestCase):
             '$.call($res)',
         ]
         self.g = self._checker.codeblock(MULTILINE_BODY)
-        p = next(self.g)
-        self.assertIn('Not valid variable name "1"', p.message)
+        self.assertIn('Not valid variable name "1"', next(self.g).message)
 
     def test_bad_assigment_case2(self):
         MULTILINE_BODY = [
@@ -117,5 +109,4 @@ class CodeStructureTest(unittest.TestCase):
                           '$.b()']}}
         ]
         self.g = self._checker.codeblock(MULTILINE_BODY)
-        p = next(self.g)
-        self.assertIn('Not valid variable name "www"', p.message)
+        self.assertIn('Not valid variable name "www"', next(self.g).message)

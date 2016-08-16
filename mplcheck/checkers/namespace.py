@@ -28,7 +28,7 @@ class NamespaceChecker(object):
             class_path = namespace + '.' + name
             fname = self._manifest_classes.get(class_path)
             if not fname:
-                yield error.report.E060('Namespace of class "{class_}" in '
+                yield error.report.S010('Namespace of class "{class_}" in '
                                         '"{class_namespace}" doesn\'t match '
                                         'namespace provided in Manifest'
                                         .format(class_=name,

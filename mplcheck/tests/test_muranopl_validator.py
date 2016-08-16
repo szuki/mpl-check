@@ -14,10 +14,9 @@
 
 from copy import deepcopy
 import mock
-import unittest
 
+from mplcheck.tests import test_validator_helpers as helpers
 from mplcheck.validators.muranopl import MuranoPLValidator
-
 
 MURANOPL_BASE = {
     'Name': 'Instance',
@@ -53,16 +52,11 @@ MURANOPL_BASE = {
 }
 
 
-class MuranoPlTests(unittest.TestCase):
+class MuranoPlTests(helpers.BaseValidatorTestClass):
     def setUp(self):
+        super(MuranoPlTests, self).setUp()
         self.loaded_package = mock.Mock()
         self.mpl_validator = MuranoPLValidator(self.loaded_package)
-
-    def tearDown(self):
-        problems = [p for p in self.g]
-        for p in problems:
-            print('Left errors:', p)
-        self.assertEqual(len(problems), 0)
 
     def test_double_underscored_name(self):
         self.g = self.mpl_validator._valid_name('__Instance')

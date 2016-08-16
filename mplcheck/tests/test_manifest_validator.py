@@ -14,25 +14,19 @@
 
 
 import mock
-import unittest
 
+from mplcheck.tests import test_validator_helpers as helpers
 from mplcheck.validators import manifest
 
 
-class ManfiestValidatorTests(unittest.TestCase):
+class ManfiestValidatorTests(helpers.BaseValidatorTestClass):
     def setUp(self):
+        super(ManfiestValidatorTests, self).setUp()
         self._oe_patcher = mock.patch('os.path.exists')
         self.exists = self._oe_patcher.start()
         self.exists.return_value = [True, True]
         self.loaded_package = mock.Mock()
         self.mv = manifest.ManifestValidator(self.loaded_package)
-        self.g = []
-
-    def tearDown(self):
-        problems = [p for p in self.g]
-        for p in problems:
-            print('Left errors:', p)
-        self.assertEqual(len(problems), 0)
 
     def test_format_as_number(self):
         self.g = self.mv._valid_format(1.3)

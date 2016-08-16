@@ -12,11 +12,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-
 import mock
-import unittest
 
-from mplcheck import checkers
+from mplcheck.checkers import namespace
+from mplcheck.tests import test_validator_helpers as helpers
 
 
 MANIFEST_DICT = {
@@ -31,18 +30,16 @@ MANIFEST_DICT = {
     'Type': 'Library'}
 
 
-class NamespacesTest(unittest.TestCase):
+class NamespacesCheckerTest(helpers.BaseValidatorTestClass):
     def setUp(self):
-        self.checker = checkers.NamespaceChecker()
+        super(NamespacesCheckerTest, self).setUp()
+        self.checker = namespace.NamespaceChecker()
         self.loader = mock.Mock()
         self.loader.list.return_value = 'Instance.yaml'
 
     def _test_classes_namespaces(self):
-        cv = [v for v in self.checker.valid_namespace(self.loader)]
-        self.assertEqual(len(cv), 1)
-        report = cv[0]
-
+        self.g = self.checker.valid_namespace(self.loader)
         self.assertIn('Namespace of class "Instance" in '
                       '"org.openstack.test.Instance" doesn\'t match namespace '
                       'provided in Manifest',
-                      report.message)
+                      next(self.g).message)
