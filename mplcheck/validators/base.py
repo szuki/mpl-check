@@ -56,29 +56,29 @@ class YamlValidator(BaseValidator):
             checkers['required'] = True
 
     def _run_single(self, file_):
-        ast = file_.yaml()
+        multi_documents = file_.yaml()
         reports_chain = []
+        for ast in multi_documents:
+            def run_helper(name, checkers, data):
+                for checker in checkers:
+                    result = checker(data)
+                    if result:
+                        reports_chain.append(result)
 
-        def run_helper(name, checkers, data):
-            for checker in checkers:
-                result = checker(data)
-                if result:
-                    reports_chain.append(result)
-
-        file_check = self._checkers.get(None)
-        if file_check:
-            run_helper(None, file_check['checkers'], ast)
-        for key, value in six.iteritems(ast):
-            checkers = self._checkers.get(key)
-            if checkers:
-                run_helper(key, checkers['checkers'], ast[key])
-            else:
-                reports_chain.append(self._unknown_keyword(key, value))
-        missing = set(key for key, value in six.iteritems(self._checkers)
-                      if value['required']) - set(ast.keys())
-        for m in missing:
-            reports_chain.append([error.report.E020('Missing required key '
-                                 '"{0}"'.format(m), m)])
+            file_check = self._checkers.get(None)
+            if file_check:
+                run_helper(None, file_check['checkers'], ast)
+            for key, value in six.iteritems(ast):
+                checkers = self._checkers.get(key)
+                if checkers:
+                    run_helper(key, checkers['checkers'], ast[key])
+                else:
+                    reports_chain.append(self._unknown_keyword(key, value))
+            missing = set(key for key, value in six.iteritems(self._checkers)
+                        if value['required']) - set(ast.keys())
+            for m in missing:
+                reports_chain.append([error.report.E020('Missing required key '
+                                    '"{0}"'.format(m), m)])
         return itertools.chain(*reports_chain)
 
     def _unknown_keyword(self, key, value):

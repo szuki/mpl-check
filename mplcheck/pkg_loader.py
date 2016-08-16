@@ -21,13 +21,15 @@ import zipfile
 import six
 import yaml
 
+from mplcheck import yaml_loader
+
 
 class FileWrapper(object):
 
     def __init__(self, path, file_content):
         self._raw = file_content
         try:
-            self._yaml = yaml.safe_load(file_content)
+            self._yaml = yaml.load_all(file_content, yaml_loader.YamlLoader)
         except yaml.YAMLError as e:
             print path
             print e
