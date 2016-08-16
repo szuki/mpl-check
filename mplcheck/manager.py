@@ -13,6 +13,7 @@
 #    under the License.
 
 import itertools
+import types
 
 import stevedore
 
@@ -43,6 +44,15 @@ class Manager(object):
         self.validators = VALIDATORS
         self.plugins = None
 
+    def _to_list(self, error_chain):
+        errors = []
+        for e in error_chain:
+            if isinstance(e, types.GeneratorType):
+                errors.extend(self._to_list(e))
+            else:
+                errors.append(e)
+        return errors
+
     def load_plugins(self):
         if self.plugins is not None:
             return
@@ -66,4 +76,4 @@ class Manager(object):
         for validator in validators:
             v = validator(self.pkg)
             report_chains.append(v.run())
-        return itertools.chain(*report_chains)
+        return self._to_list(itertools.chain(*report_chains))
