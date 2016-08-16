@@ -102,7 +102,7 @@ class CheckCodeStructure(object):
 
     def yaql(self, value):
         if not self._yaql_checker(value):
-            yield error.report.E202('Not valid yaql expression '
+            yield error.report.E202('Not a valid yaql expression '
                                     '"{0}"'.format(value), value)
 
     def codeblock(self, codeblocks):
@@ -131,6 +131,9 @@ class CheckCodeStructure(object):
     def _single_block(self, block):
         if isinstance(block, dict):
             for p in self._check_structure(block):
+                yield p
+        elif isinstance(block, six.string_types):
+            for p in self.yaql(block):
                 yield p
 
     def _run_check(self, check, value):

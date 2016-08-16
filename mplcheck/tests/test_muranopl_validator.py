@@ -47,7 +47,7 @@ MURANOPL_BASE = {
                         '$instanceTemplate.mergeWith($template)'}],
                  'For': 'port',
                  'In': '$.ports'},
-                {'sth': 'new(res:Neutron)'},
+                {'$sth': 'new(res:Neutron)'},
                 {'Return': '$instanceTemplate'}]}},
 }
 
@@ -94,10 +94,8 @@ class MuranoPlTests(helpers.BaseValidatorTestClass):
 
     def test_dict_in_body(self):
         m_dict = deepcopy(MURANOPL_BASE['Methods'])
-        m_dict['prepareStackTemplate']['Body'] = {'a': 'b'}
+        m_dict['prepareStackTemplate']['Body'] = {'$a': 'b'}
         self.g = self.mpl_validator._valid_methods(m_dict)
-        self.assertIn('Body is not a list or scalar/yaql expression',
-                      next(self.g).message)
 
     def test_wrong_default_expr(self):
         p_dict = deepcopy(MURANOPL_BASE['Properties'])
@@ -110,15 +108,20 @@ class MuranoPlTests(helpers.BaseValidatorTestClass):
         m_dict = deepcopy(MURANOPL_BASE['Methods'])
         m_dict['prepareStackTemplate']['Body'] = '$.deploy('
         self.g = self.mpl_validator._valid_methods(m_dict)
-        self.assertIn('Error in expression "$.deploy("',
+        self.assertIn('Not a valid yaql expression "$.deploy("',
                       next(self.g).message)
+
+    def test_method_body_is_return(self):
+        m_dict = deepcopy(MURANOPL_BASE['Methods'])
+        m_dict['prepareStackTemplate']['Body'] = {'Return': '3'}
+        self.g = self.mpl_validator._valid_methods(m_dict)
 
     def test_error_in_method_for_loop_in(self):
         m_dict = deepcopy(MURANOPL_BASE['Methods'])
         m_dict['prepareStackTemplate']['Body'][0]['In'] =\
             '$.deploy('
         self.g = self.mpl_validator._valid_methods(m_dict)
-        self.assertIn('Error in expression "$.deploy("',
+        self.assertIn('Not a valid yaql expression "$.deploy("',
                       next(self.g).message)
 
     def test_error_in_method_for_loop_body(self):
@@ -126,7 +129,7 @@ class MuranoPlTests(helpers.BaseValidatorTestClass):
         m_dict['prepareStackTemplate']['Body'][0]['Do'][1] =\
             '$.deploy('
         self.g = self.mpl_validator._valid_methods(m_dict)
-        self.assertIn('Error in expression "$.deploy("',
+        self.assertIn('Not a valid yaql expression "$.deploy("',
                       next(self.g).message)
 
     def test_missing_contract_in_properties(self):
@@ -142,3 +145,11 @@ class MuranoPlTests(helpers.BaseValidatorTestClass):
         self.g = self.mpl_validator._valid_properties(p_dict)
         self.assertIn('Contract is not valid yaql "$.deploy("',
                       next(self.g).message)
+
+    def test_contract_is_a_dict(self):
+        p_dict = deepcopy(MURANOPL_BASE['Properties'])
+        p_dict['ports']['Contract'] = {
+                'instance': '$.string()',
+                'ports': ['$.ports()']
+                }
+        self.g = self.mpl_validator._valid_properties(p_dict)

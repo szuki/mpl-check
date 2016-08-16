@@ -55,15 +55,15 @@ class ManfiestValidatorTests(helpers.BaseValidatorTestClass):
     def test_not_existing_file(self):
         data = {'org.openstack.Flow': 'FlowClassifier.yaml',
                 'org.openstack.Instance': 'Instance.yaml'}
-        self.loaded_package.list.return_value = ['FlowClassifier.yaml']
+        self.loaded_package.list_files.return_value = ['FlowClassifier.yaml']
         self.g = self.mv._valid_classes(data)
         self.assertIn('File is present in Manfiest Instance.yaml, but not in '
                       'filesystem', next(self.g).message)
 
     def test_extra_file_in_directory(self):
         data = {'org.openstack.Instance': 'Instance.yaml'}
-        self.loaded_package.list.return_value = ['FlowClassifier.yaml',
-                                                 'Instance.yaml']
+        self.loaded_package.list_files.return_value = ['FlowClassifier.yaml',
+                                                       'Instance.yaml']
         self.g = self.mv._valid_classes(data)
         self.assertIn('File is not present in Manfiest, but it is in '
                       'filesystem: FlowClassifier.yaml', next(self.g).message)

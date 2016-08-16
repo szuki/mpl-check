@@ -66,6 +66,35 @@ class MuranoPLValidator(base.YamlValidator):
             return True
         return False
 
+    def _valid_contract(self, contract):
+        if isinstance(contract, list):
+            if len(contract) > 1:
+                yield error.report.E042('Too many objects in list'
+                                        '"{0}"'.format(contract),
+                                        contract)
+            else:
+                contract = contract[0]
+                if not self.yaql_checker(contract):
+                    yield error.report.E048('Contract is not valid '
+                                            'yaql "{0}"'
+                                            .format(contract),
+                                            contract)
+        elif isinstance(contract, dict):
+            for c_key, c_value in six.iteritems(contract):
+                for p in self._valid_contract(c_value):
+                    yield p
+        elif isinstance(contract, six.string_types):
+            if not self.yaql_checker(contract):
+                yield error.report.E048('Contract is not valid '
+                                        'yaql "{0}"'
+                                        .format(contract),
+                                        contract)
+        else:
+            yield error.report.E048('Contract is not valid '
+                                    'yaql "{0}"'
+                                    .format(contract),
+                                    contract)
+
     def _valid_properties(self, value):
         usage_allowed = frozenset(['In', 'Out', 'InOut', 'Const', 'Static',
                                   'Runtime'])
@@ -80,15 +109,8 @@ class MuranoPLValidator(base.YamlValidator):
                                             usage)
             contract = values.get('Contract')
             if contract:
-                if isinstance(contract, list):
-                    if len(contract) > 1:
-                        #XXX:
-                        pass
-                    else:
-                        contract = contract[0]
-                if not self.yaql_checker(contract):
-                    yield error.report.E048('Contract is not valid yaql "{0}"'
-                                            .format(contract), contract)
+                for p in self._valid_contract(contract):
+                    yield p
             else:
                 yield error.report.E047('Missing Contract in property "{0}"'
                                         .format(property_), property_)
@@ -120,6 +142,7 @@ class MuranoPLValidator(base.YamlValidator):
                 yield error.report.E044('Wrong Scope "{0}"'.format(scope),
                                         method_data)
             body = method_data.get('Body')
+            print body
             if not isinstance(body, (list, six.string_types, dict)):
                 yield error.report.E045('Body is not a list or scalar/yaql '
                                         'expression', body)
