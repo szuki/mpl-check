@@ -14,7 +14,11 @@
 
 import argparse
 
+from mplcheck import log
 from mplcheck import manager
+
+LOG = log.get_logger(__name__)
+
 
 def parse_cli_args(args=None):
 
