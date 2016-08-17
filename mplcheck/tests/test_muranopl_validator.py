@@ -97,13 +97,6 @@ class MuranoPlTests(helpers.BaseValidatorTestClass):
         m_dict['prepareStackTemplate']['Body'] = {'$a': 'b'}
         self.g = self.mpl_validator._valid_methods(m_dict)
 
-    def test_wrong_default_expr(self):
-        p_dict = deepcopy(MURANOPL_BASE['Properties'])
-        p_dict['ports']['Default'] = '$.deploy('
-        self.g = self.mpl_validator._valid_properties(p_dict)
-        self.assertIn('Wrong type of default',
-                      next(self.g).message)
-
     def test_error_in_method_scalar_body(self):
         m_dict = deepcopy(MURANOPL_BASE['Methods'])
         m_dict['prepareStackTemplate']['Body'] = '$.deploy('

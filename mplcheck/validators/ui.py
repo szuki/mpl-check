@@ -44,7 +44,7 @@ class UiValidator(base.YamlValidator):
                 if key == 'type':
                     if value not in FIELDS_TYPE:
                         yield error.report.E80('Wrong type of field "{0}"'
-                                               .format(key), value)
+                                               .format(value), value)
                 elif key == 'required':
                     if isinstance(value, bool):
                         yield error.report.E81('Value of {0} should be '

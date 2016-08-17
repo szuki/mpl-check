@@ -27,24 +27,22 @@ class UiValidatorTest(helpers.BaseValidatorTestClass):
     def test_forms(self):
         forms = [
             {'name1': {
-                'fields': [
-                    {'n1': {
-                        'name': 'whatever',
-                        'type': 'integer',
-                        'label': 'sth',
-                        'description': 'something'
-                    }}]}}]
+                'fields': [{
+                    'name': 'whatever',
+                    'type': 'integer',
+                    'label': 'sth',
+                    'description': 'something'
+                }]}}]
         self.g = self.ui_validator._validate_forms(forms)
 
     def test_forms_wrong_type(self):
         forms = [
             {'name1': {
-                'fields': [
-                    {'n1': {
-                        'name': 'whatever',
-                        'type': 'int',
-                        'label': 'sth',
-                        'description': 'something'
-                    }}]}}]
+                'fields': [{
+                    'name': 'whatever',
+                    'type': 'int',
+                    'label': 'sth',
+                    'description': 'something'
+                }]}}]
         self.g = self.ui_validator._validate_forms(forms)
         self.assertIn('Wrong type of field "int"', next(self.g).message)
