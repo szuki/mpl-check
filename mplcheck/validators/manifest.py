@@ -45,7 +45,7 @@ class ManifestValidator(base.YamlValidator):
         ver = format_[-1]
         if str(ver) not in ['1.0', '1.1', '1.2', '1.3', '1.4']:
             yield error.report.E030('Not supported format version "{0}"'
-                                    .format(ver), ver)
+                                    .format(value), value)
 
     def _valid_tags(self, value):
         if not isinstance(value, list):
