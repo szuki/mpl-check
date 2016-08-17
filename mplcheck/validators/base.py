@@ -13,10 +13,14 @@
 #    under the License.
 
 import itertools
+import logging
 
 import six
 
 from mplcheck import error
+
+
+logger = logging.getLogger(__name__)
 
 
 def check_version(method, version):
@@ -65,7 +69,13 @@ class YamlValidator(BaseValidator):
 
         def run_helper(name, checkers, data):
             for checker in checkers:
-                result = checker(data)
+                try:
+                    result = checker(data)
+                except Exception:
+                    result = error.report.E000('Checker failed for "{0}" more '
+                                               'information in logs'
+                                               .format(name))
+                    logger.exception('Checker failed for keyword "{0}"', name)
                 if result:
                     reports_chain.append(result)
 
