@@ -52,7 +52,7 @@ class UiValidator(base.YamlValidator):
                                                'boolean "{1}"'
                                                .format(key, value), value)
                 elif key == 'hidden':
-                    if isinstance(value, bool):
+                    if not isinstance(value, bool):
                         yield error.report.E81('Value of {0} should be '
                                                'boolean "{1}"'
                                                .format(key, value), value)

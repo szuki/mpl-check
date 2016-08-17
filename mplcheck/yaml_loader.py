@@ -50,6 +50,13 @@ class YamlString(YamlObject, bytes):
     pass
 
 
+class YamlBool(YamlObject):
+    def __init__(self, value):
+        self._value = value
+
+    def __str__(self):
+        return '{0}'.format(self._value)
+
 BaseLoader = getattr(yaml, 'CSafeLoader', yaml.SafeLoader)
 
 
@@ -74,6 +81,11 @@ class YamlLoader(BaseLoader):
         data.update(value)
         data.__yaml_meta__ = node.start_mark
 
+    def construct_yaml_bool(self, node):
+        value = super(YamlLoader, self).construct_yaml_bool(node)
+        data = YamlBool(value)
+        data.__yaml_meta__ = node.start_mark
+        return data
 
 YamlLoader.add_constructor(
     u'tag:yaml.org,2002:seq',
@@ -86,3 +98,7 @@ YamlLoader.add_constructor(
 YamlLoader.add_constructor(
     u'tag:yaml.org,2002:map',
     YamlLoader.construct_yaml_map)
+
+YamlLoader.add_constructor(
+    u'tag:yaml.org,2002:bool',
+    YamlLoader.construct_yaml_bool)
