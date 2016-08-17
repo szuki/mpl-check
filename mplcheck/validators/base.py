@@ -25,12 +25,16 @@ def check_version(method, version):
 
 class BaseValidator(object):
     def __init__(self, loaded_package, _filter='.*'):
-        self._loaded_package = loaded_package
+        self._loaded_pkg = loaded_package
         self._filter = _filter
+
+    def _run_single(self, file_):
+        pass
 
     def run(self):
         chain_of_suits = []
-        for file_ in self._loaded_package.search_for(self._filter):
+        for filename in self._loaded_pkg.search_for(self._filter):
+            file_ = self._loaded_pkg.read(filename)
             chain_of_suits.append(self._run_single(file_))
         return itertools.chain(*chain_of_suits)
 

@@ -26,13 +26,16 @@ from mplcheck import yaml_loader
 
 class FileWrapper(object):
 
-    def __init__(self, path, file_content):
-        self._raw = file_content
+    def __init__(self, path):
         self._path = path
-        try:
-            self._yaml = yaml.load_all(file_content, yaml_loader.YamlLoader)
-        except yaml.YAMLError:
-            self._yaml = None
+        with open(path) as file_:
+            self._raw = file_.read()
+
+        with open(path) as file_:
+            try:
+                self._yaml = list(yaml.load_all(file_, yaml_loader.YamlLoader))
+            except yaml.YAMLError:
+                self._yaml = None
 
     def raw(self):
         return self._raw
@@ -42,13 +45,13 @@ class FileWrapper(object):
 
 @six.add_metaclass(abc.ABCMeta)
 class BaseLoader(object):
-    def __init__(self, filename):
-        self.filename = filename
+    def __init__(self, path):
+        self.path = path
         self._cached_files = dict()
 
     @classmethod
     @abc.abstractmethod
-    def try_load(cls, filename):
+    def try_load(cls, path):
         pass
 
     @abc.abstractmethod
@@ -63,31 +66,30 @@ class BaseLoader(object):
     def exists(self, name):
         pass
 
-    def search_for(self, regex='.*'):
+    def search_for(self, regex='.*', subdir=None):
         r = re.compile(regex)
-        return (self.read(f) for f in self.list_files() if r.match(f))
+        return (f for f in self.list_files(subdir) if r.match(f))
 
     def read(self, path):
         if path in self._cached_files:
             return self._cached_files[path]
-        with self._open_file(path) as fp:
-            self._cached_files[path] = FileWrapper(path, fp.read())
-            return self._cached_files[path]
+        self._cached_files[path] = FileWrapper(os.path.join(self.path, path))
+        return self._cached_files[path]
 
 
 class DirectoryLoader(BaseLoader):
 
     @classmethod
-    def try_load(cls, filename):
-        if os.path.isdir(filename):
-            return cls(filename)
+    def try_load(cls, path):
+        if os.path.isdir(path):
+            return cls(path)
         return None
 
     def _open_file(self, path, mode='r'):
-        return open(os.path.join(self.filename, path), mode)
+        return open(os.path.join(self.path, path), mode)
 
     def list_files(self, subdir=None):
-        path = self.filename
+        path = self.path
         if subdir is not None:
             path = os.path.join(path, subdir)
 
@@ -95,7 +97,7 @@ class DirectoryLoader(BaseLoader):
         for dirpath, dirnames, filenames in os.walk(path):
             files.extend(
                 os.path.relpath(
-                    os.path.join(dirpath, filename), self.filename)
+                    os.path.join(dirpath, filename), self.path)
                 for filename in filenames)
         if subdir is None:
             return files
@@ -103,19 +105,19 @@ class DirectoryLoader(BaseLoader):
         return [file_[subdir_len:].lstrip('/') for file_ in files]
 
     def exists(self, name):
-        return os.path.exists(os.path.join(self.filename, name))
+        return os.path.exists(os.path.join(self.path, name))
 
 
 class ZipLoader(BaseLoader):
 
-    def __init__(self, filename):
-        super(ZipLoader, self).__init__(filename)
-        self._zipfile = zipfile.ZipFile(self.filename)
+    def __init__(self, path):
+        super(ZipLoader, self).__init__(path)
+        self._zipfile = zipfile.ZipFile(self.path)
 
     @classmethod
-    def try_load(cls, filename):
+    def try_load(cls, path):
         try:
-            return cls(filename)
+            return cls(path)
         except zipfile.BadZipfile:
             return None
 
