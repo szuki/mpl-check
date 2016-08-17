@@ -29,6 +29,7 @@ class UiValidator(base.YamlValidator):
         self.add_checker(self._validate_templates, 'Templates', False)
         self.add_checker(self._validate_forms, 'Forms', False)
         self.add_checker(self._validate_application, 'Application', False)
+        self.add_checker(self._validate_application, 'Version', False)
 
     def _validate_templates(self, value):
         pass
@@ -46,7 +47,7 @@ class UiValidator(base.YamlValidator):
                         yield error.report.E80('Wrong type of field "{0}"'
                                                .format(value), value)
                 elif key == 'required':
-                    if isinstance(value, bool):
+                    if not isinstance(value, bool):
                         yield error.report.E81('Value of {0} should be '
                                                'boolean "{1}"'
                                                .format(key, value), value)

@@ -78,7 +78,8 @@ class ManifestValidator(base.YamlValidator):
 
     def _valid_classes(self, value):
         files = set(value.values())
-        existing_files = set(self._loaded_pkg.list_files('Classes'))
+        existing_files = set(self._loaded_pkg.search_for('.*\.yaml$',
+                                                         'Classes'))
         for fname in files - existing_files:
             yield error.report.E050('File is present in Manfiest {fname}, '
                                     'but not in filesystem'
