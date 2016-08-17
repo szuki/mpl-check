@@ -38,6 +38,6 @@ class BaseValidatorTestClass(unittest.TestCase):
         return self._g
 
     def set_g(self, value):
-        self._g = self.linear(value)
+        self._g = self._linear(value)
 
     g = property(get_g, set_g)

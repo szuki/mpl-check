@@ -40,21 +40,21 @@ class UiValidator(base.YamlValidator):
 
     def _valid_form(self, form):
         for named_params in form:
-            params = named_params.values()[0]
-            for key, value in six.iteritems(params):
+            for key, value in six.iteritems(named_params):
                 if key == 'type':
                     if value not in FIELDS_TYPE:
                         yield error.report.E80('Wrong type of field "{0}"'
-                                               .format(value),
-                                               value)
+                                               .format(key), value)
                 elif key == 'required':
                     if isinstance(value, bool):
-                        yield error.report.E81('Value should be boolean "{0}"'
-                                               .format(value))
+                        yield error.report.E81('Value of {0} should be '
+                                               'boolean "{1}"'
+                                               .format(key, value), value)
                 elif key == 'hidden':
                     if isinstance(value, bool):
-                        yield error.report.E81('Value should be boolean "{0}"'
-                                               .format(value))
+                        yield error.report.E81('Value of {0} should be '
+                                               'boolean "{1}"'
+                                               .format(key, value), value)
                 else:
                     yield self._valid_string(value)
 

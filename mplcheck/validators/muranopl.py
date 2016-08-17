@@ -112,15 +112,6 @@ class MuranoPLValidator(base.YamlValidator):
             else:
                 yield error.report.E047('Missing Contract in property "{0}"'
                                         .format(property_), property_)
-            default = values.get('Default')
-            if default:
-                if not isinstance(default, (float, int)):
-                    if isinstance(default, six.string_types) and\
-                            not self.yaql_checker(default):
-                        # Note: yaql_checker will fail if string will have
-                        # spaces
-                        yield error.report.E043('Wrong type of default',
-                                                default)
 
     def check_property_name(self, property_):
         return True
