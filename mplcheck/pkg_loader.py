@@ -43,6 +43,7 @@ class FileWrapper(object):
     def yaml(self):
         return self._yaml
 
+
 @six.add_metaclass(abc.ABCMeta)
 class BaseLoader(object):
     def __init__(self, path):

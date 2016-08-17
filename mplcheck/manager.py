@@ -21,6 +21,7 @@ from mplcheck import pkg_loader
 from mplcheck.validators import VALIDATORS
 
 
+
 class Formatter(object):
 
     def format(self, error):

@@ -151,6 +151,6 @@ class MuranoPlTests(helpers.BaseValidatorTestClass):
         p_dict = deepcopy(MURANOPL_BASE['Properties'])
         p_dict['ports']['Contract'] = {
             'instance': '$.string()',
-            'ports': {'a':'$.ports()', 'b': '$.string()'}
+            'ports': {'a': '$.ports()', 'b': '$.string()'}
         }
         self.g = self.mpl_validator._valid_properties(p_dict)
