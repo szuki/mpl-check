@@ -13,7 +13,6 @@
 #    under the License.
 
 
-import six
 import yaml
 
 __all__ = ['YamlLoader']

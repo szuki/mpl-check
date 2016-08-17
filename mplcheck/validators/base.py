@@ -76,10 +76,10 @@ class YamlValidator(BaseValidator):
                 else:
                     reports_chain.append(self._unknown_keyword(key, value))
             missing = set(key for key, value in six.iteritems(self._checkers)
-                        if value['required']) - set(ast.keys())
+                          if value['required']) - set(ast.keys())
             for m in missing:
                 reports_chain.append([error.report.E020('Missing required key '
-                                    '"{0}"'.format(m), m)])
+                                     '"{0}"'.format(m), m)])
         return itertools.chain(*reports_chain)
 
     def _unknown_keyword(self, key, value):

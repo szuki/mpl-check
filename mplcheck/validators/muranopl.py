@@ -15,8 +15,8 @@
 import re
 import six
 
-from mplcheck.checkers import yaql_checker
 from mplcheck.checkers import code_structure
+from mplcheck.checkers import yaql_checker
 from mplcheck import error
 from mplcheck.validators import base
 
