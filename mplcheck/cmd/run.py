@@ -22,13 +22,25 @@ LOG = log.get_logger(__name__)
 
 def parse_cli_args(args=None):
 
-    usage_string = ('blah -h')
+    usage_string = 'mpl-check [options] <path to package>'
 
     parser = argparse.ArgumentParser(
         description='murano-pkg-checker arguments',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         usage=usage_string
     )
+
+    parser.add_argument('--select',
+                        dest='select',
+                        required=False,
+                        type=str,
+                        help='select errors and warnings (e.g. E001,W002)')
+
+    parser.add_argument('--ignore',
+                        dest='ignore',
+                        required=False,
+                        type=str,
+                        help='skip errors and warnings (e.g. E042,W007)')
 
     parser.add_argument('pkg_path',
                         type=str,
@@ -41,10 +53,18 @@ def run():
     args = parse_cli_args()
     m = manager.Manager(args.pkg_path)
     m.load_plugins()
-    errors = m.validate()
+    if args.select:
+        select = args.select.split(',')
+    else:
+        select = None
+    if args.ignore:
+        ignore = args.ignore.split(',')
+    else:
+        ignore = None
+    errors = m.validate(select=select, ignore=ignore)
     fmt = manager.PlainTextFormatter()
     for l in fmt.format(errors):
-        print l
+        print(l)
 
 if __name__ == '__main__':
     run()

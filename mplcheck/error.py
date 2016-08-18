@@ -41,7 +41,7 @@ def error(code, message, filename=None, line=0, column=0, source=None):
 
 
 def _report(code):
-    def _report_(message, yaml_obj, filename=None):
+    def _report_(message, yaml_obj=None, filename=None):
         meta = getattr(yaml_obj, '__yaml_meta__', None)
         kwargs = {}
         if meta is not None:

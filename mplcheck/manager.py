@@ -17,9 +17,12 @@ import types
 
 import stevedore
 
+from mplcheck import error
+from mplcheck import log
 from mplcheck import pkg_loader
 from mplcheck.validators import VALIDATORS
 
+LOG = log.get_logger(__name__)
 
 
 class Formatter(object):
@@ -45,14 +48,27 @@ class Manager(object):
         self.validators = VALIDATORS
         self.plugins = None
 
-    def _to_list(self, error_chain):
+    def _to_list(self, error_chain, select=None, ignore=None):
         errors = []
-        for e in error_chain:
+        while True:
+            try:
+                e = next(error_chain, None)
+                if e is None:
+                    break
+            except Exception:
+                LOG.exception('Checker failed')
+                e = error.report.E000(
+                    'Checker failed more information in logs')
+
             if isinstance(e, types.GeneratorType):
-                errors.extend(self._to_list(e))
+                errors.extend(self._to_list(e, select, ignore))
             else:
+                if ((select and e.code not in select)
+                   or (ignore and e.code in ignore)):
+                    continue
                 errors.append(e)
-        return errors
+
+        return sorted(errors, key=lambda err: err.code)
 
     def load_plugins(self):
         if self.plugins is not None:
@@ -68,13 +84,13 @@ class Manager(object):
 
     @staticmethod
     def failure_hook(_, ep, err):
-        print('Could not load %r: %s', ep.name, err)
+        LOG.info('Could not load %r: %s', ep.name, err)
         raise err
 
-    def validate(self, validators=None):
+    def validate(self, validators=None, select=None, ignore=None):
         validators = validators or self.validators
         report_chains = []
         for validator in validators:
             v = validator(self.pkg)
             report_chains.append(v.run())
-        return self._to_list(itertools.chain(*report_chains))
+        return self._to_list(itertools.chain(*report_chains), select, ignore)
