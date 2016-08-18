@@ -72,7 +72,7 @@ class MuranoPLValidator(base.YamlValidator):
                 yield error.report.E042('Too many objects in list'
                                         '"{0}"'.format(contract),
                                         contract)
-            else:
+            elif len(contract) == 1:
                 contract = contract[0]
                 if not self.yaql_checker(contract):
                     yield error.report.E048('Contract is not valid '
