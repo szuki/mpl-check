@@ -72,13 +72,7 @@ class YamlValidator(BaseValidator):
 
         def run_helper(name, checkers, data):
             for checker in checkers:
-                try:
-                    result = checker(data)
-                except Exception:
-                    result = error.report.E000('Checker failed for "{0}" more '
-                                               'information in logs'
-                                               .format(name))
-                    LOG.info('Checker failed for keyword "{0}"', name)
+                result = checker(data)
                 if result:
                     reports_chain.append(result)
 
