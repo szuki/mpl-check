@@ -26,13 +26,10 @@ FIELDS_TYPE = frozenset(['string', 'boolean', 'text', 'integer', 'password',
 class UiValidator(base.YamlValidator):
     def __init__(self, loaded_package):
         super(UiValidator, self).__init__(loaded_package, 'UI/.*\.yaml$')
-        self.add_checker(self._validate_templates, 'Templates', False)
         self.add_checker(self._validate_forms, 'Forms', False)
-        self.add_checker(self._validate_application, 'Application', False)
-        self.add_checker(self._validate_application, 'Version', False)
-
-    def _validate_templates(self, value):
-        pass
+        self.add_checker(self._null_checker, 'Templates', False)
+        self.add_checker(self._null_checker, 'Application', False)
+        self.add_checker(self._null_checker, 'Version', False)
 
     def _validate_forms(self, forms):
         for named_form in forms:
@@ -44,20 +41,17 @@ class UiValidator(base.YamlValidator):
             for key, value in six.iteritems(named_params):
                 if key == 'type':
                     if value not in FIELDS_TYPE:
-                        yield error.report.E80('Wrong type of field "{0}"'
-                                               .format(value), value)
+                        yield error.report.E080('Wrong type of field "{0}"'
+                                                .format(value), value)
                 elif key == 'required':
                     if not isinstance(value, bool):
-                        yield error.report.E81('Value of {0} should be '
-                                               'boolean "{1}"'
-                                               .format(key, value), value)
+                        yield error.report.E081('Value of {0} should be '
+                                                'boolean "{1}"'
+                                                .format(key, value), value)
                 elif key == 'hidden':
                     if not isinstance(value, bool):
-                        yield error.report.E81('Value of {0} should be '
-                                               'boolean "{1}"'
-                                               .format(key, value), value)
+                        yield error.report.E081('Value of {0} should be '
+                                                'boolean "{1}"'
+                                                .format(key, value), value)
                 else:
                     yield self._valid_string(value)
-
-    def _validate_application(self, value):
-        pass

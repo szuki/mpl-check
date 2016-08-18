@@ -97,3 +97,6 @@ class YamlValidator(BaseValidator):
 
     def _unknown_keyword(self, key, value):
         yield error.report.W010('Unknown keyword "{0}"'.format(key), key)
+
+    def _null_checker(self, value):
+        pass
