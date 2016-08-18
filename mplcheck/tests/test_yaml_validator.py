@@ -12,6 +12,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import mock
 import unittest
 
 from mplcheck.validators import base
@@ -19,4 +20,46 @@ from mplcheck.validators import base
 
 class YamlValidatorTest(unittest.TestCase):
     def setUp(self):
-        self.v = base.YamlValidator()
+        self.pkg = mock.Mock()
+        self.pkg.search_for.return_value = ['sth']
+        self.fmock = mock.Mock()
+        self.document = mock.Mock()
+        self.pkg.read.return_value = self.fmock
+        self.v = base.YamlValidator(self.pkg, '***')
+
+    def test_checker_with_ast(self):
+        c = mock.Mock()
+        c.return_value = 'ok'
+        self.fmock.yaml.return_value = [{}]
+        self.v.add_checker(c)
+        errors = self.v.run()
+        c.assert_called_once_with({})
+        self.pkg.search_for.assert_called_once_with('***')
+
+    def test_run_single_with_key_checker(self):
+        c = mock.Mock()
+        c.return_value = 'ok'
+        self.fmock.yaml.return_value = [{'key': 'whatever'}]
+        self.v.add_checker(c, 'key')
+        errors = self.v.run()
+        c.assert_called_once_with('whatever')
+        self.pkg.search_for.assert_called_once_with('***')
+
+    def test_two_keys_unknown_key(self):
+        c = mock.Mock()
+        c.return_value = None
+        self.fmock.yaml.return_value = [{'key': 'whatever',
+                                         'unknown': ''}]
+        self.v.add_checker(c, 'key')
+        errors = self.v.run()
+        c.assert_called_once_with('whatever')
+        self.pkg.search_for.assert_called_once_with('***')
+        self.assertIn('Unknown keyword "unknown"', next(errors).message)
+
+    def test_missing_required_key(self):
+        c = mock.Mock()
+        self.fmock.yaml.return_value = [{}]
+        self.v.add_checker(c, 'key')
+        errors = self.v.run()
+        self.pkg.search_for.assert_called_once_with('***')
+        self.assertIn('Missing required key "key"', next(errors).message)

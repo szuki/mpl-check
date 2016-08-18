@@ -12,6 +12,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import abc
 import itertools
 
 import six
@@ -27,10 +28,13 @@ def check_version(method, version):
 
 
 class BaseValidator(object):
+    __metaclass__ = abc.ABCMeta
+
     def __init__(self, loaded_package, _filter='.*'):
         self._loaded_pkg = loaded_package
         self._filter = _filter
 
+    @abc.abstractmethod
     def _run_single(self, file_):
         pass
 
