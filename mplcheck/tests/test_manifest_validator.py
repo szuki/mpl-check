@@ -36,8 +36,20 @@ class ManfiestValidatorTests(helpers.BaseValidatorTestClass):
         self.assertIn('Not supported format version "0.9"',
                       next(self.g).message)
 
-    def test_format(self):
-        self.g = self.mv._valid_format('MuranoPL/1.0')
+    def test_wrong_format(self):
+        self.g = self.mv._valid_format('0.9')
+        self.assertIn('Not supported format version "0.9"',
+                      next(self.g).message)
+
+    def test_valid_string(self):
+        self.g = self.mv._valid_string(1)
+        self.assertIn('Value is not a string "1"',
+                      next(self.g).message)
+
+    def test_heat_format(self):
+        self.g = self.mv._valid_format('Heat/1.0')
+        self.assertIn('Not supported format version "Heat/1.0"',
+                      next(self.g).message)
 
     def test_unsupported_format(self):
         self.g = self.mv._valid_format('Heat.HOT')
@@ -87,3 +99,7 @@ class ManfiestValidatorTests(helpers.BaseValidatorTestClass):
     def test_wrong_ui_type(self):
         self.g = self.mv._valid_ui([1, 2, 3])
         self.assertIn('UI is not a filename', next(self.g).message)
+
+    def test_tags(self):
+        self.g = self.mv._valid_tags('whatever')
+        self.assertIn('Tags should be a list', next(self.g).message)

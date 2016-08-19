@@ -23,8 +23,8 @@ def check_req(check, required=True):
 
 CODE_STRUCTURE = {
     'Try': {
-        'check': 'codeblock',
         'keywords': {
+            'Try': check_req('codeblock'),
             'Catch': check_req('empty'),
             'With': check_req('string'),
             'As': check_req('string'),
@@ -33,46 +33,47 @@ CODE_STRUCTURE = {
             'Finally': check_req('codeblock', False)}},
     'Parallel': {
         'keywords': {
-            'Limit': check_req('codeblock', False)},
-        'check': 'codeblock',
+            'Limit': check_req('codeblock', False),
+            'Parallel': check_req('codeblock')},
     },
     'Repeat': {
-        'check': 'number',
         'keywords': {
+            'Repeat': check_req('number'),
             'Do': check_req('codeblock')}},
     'If': {
-        'check': 'predicate',
         'keywords': {
+            'If': check_req('predicate'),
             'Then': check_req('codeblock'),
             'Else': check_req('codeblock', False)}
     },
-    'Breaks': {
-        'check': 'empty',
+    'Break': {
+        'keywords': {
+            'Break': check_req('empty')}
     },
     'Return': {
-        'check': 'expression',
+        'Return': check_req('expression'),
     },
     'While': {
-        'check': 'predicate',
         'keywords': {
+            'While': check_req('predicate'),
             'Do': check_req('codeblock')}
     },
     'For': {
-        'check': 'string',
         'keywords': {
+            'For': check_req('string'),
             'In': check_req('expression'),
             'Do': check_req('codeblock')}
     },
     'Match': {
-        'check': {'expression': 'codeblock'},
         'keywords': {
+            'Match': check_req(('expression', 'codeblock')),
             'Value': check_req('expression'),
             'Default': check_req('codeblock'),
         }
     },
     'Switch': {
-        'check': {'predicate': 'codeblock'},
         'keywords': {
+            'Switch': check_req(('predicate', 'codeblock')),
             'Default': check_req('codeblock')}
     }
 }
@@ -82,7 +83,7 @@ class CheckCodeStructure(object):
     def __init__(self):
         self._check_mappings = {
             'codeblock': self.codeblock,
-            'predictate': self.yaql,
+            'predicate': self.yaql,
             'empty': self.empty,
             'expression': self.yaql,
             'string': self.string,
@@ -91,8 +92,8 @@ class CheckCodeStructure(object):
         self._yaql_checker = yaql_checker.YaqlChecker()
 
     def string(self, value):
-        if isinstance(value, six.string_types):
-            yield error.report.E203('Value should be string type'
+        if not isinstance(value, six.string_types):
+            yield error.report.E203('Value should be string type '
                                     '"{0}"'.format(value), value)
 
     def empty(self, value):
@@ -142,9 +143,8 @@ class CheckCodeStructure(object):
             if len(block_keys) == 1:
                 yield self._check_assigment(block)
             else:
-                yield error.report.E200('Wrong code structure probably '
-                                        'typo in keyword "{0}"'
-                                        .format(key), key)
+                yield error.report.E200('Wrong code structure/assigment '
+                                        'probably typo', block)
             return
 
         keywords = value.get('keywords', {})

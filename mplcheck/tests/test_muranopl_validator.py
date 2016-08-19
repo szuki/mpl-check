@@ -117,6 +117,14 @@ class MuranoPlTests(helpers.BaseValidatorTestClass):
         self.assertIn('Not a valid yaql expression "$.deploy("',
                       next(self.g).message)
 
+    def test_error_in_method_for_loop_in(self):
+        m_dict = deepcopy(MURANOPL_BASE['Methods'])
+        m_dict['prepareStackTemplate']['Body'][0]['In'] =\
+            '$.deploy('
+        self.g = self.mpl_validator._valid_methods(m_dict)
+        self.assertIn('Not a valid yaql expression "$.deploy("',
+                      next(self.g).message)
+
     def test_error_in_method_for_loop_body(self):
         m_dict = deepcopy(MURANOPL_BASE['Methods'])
         m_dict['prepareStackTemplate']['Body'][0]['Do'][1] =\
@@ -163,3 +171,51 @@ class MuranoPlTests(helpers.BaseValidatorTestClass):
         }
         self.g = self.mpl_validator._valid_properties(p_dict)
 
+    def test_contract_two_items_list(self):
+        p_dict = deepcopy(MURANOPL_BASE['Properties'])
+        p_dict['ports']['Contract'] = ['$.string()', '$.string()']
+        self.g = self.mpl_validator._valid_properties(p_dict)
+        self.assertIn('Too many items in contract list',
+                      next(self.g).message)
+
+    def test_contract_is_a_number(self):
+        p_dict = deepcopy(MURANOPL_BASE['Properties'])
+        p_dict['ports']['Contract'] = 1
+        self.g = self.mpl_validator._valid_properties(p_dict)
+        self.assertIn('Contract is not valid yaql "1"',
+                      next(self.g).message)
+
+    def test_contract_a_list_with_invalid_yaql(self):
+        p_dict = deepcopy(MURANOPL_BASE['Properties'])
+        p_dict['ports']['Contract'] = ['$.string(']
+        self.g = self.mpl_validator._valid_properties(p_dict)
+        self.assertIn('Contract is not valid yaql "$.string("',
+                      next(self.g).message)
+
+    def test_extends_is_not_a_valid_list(self):
+        p_dict = deepcopy(MURANOPL_BASE['Extends'])
+        p_dict = ['abc:def', 1]
+        self.g = self.mpl_validator._valid_extends(p_dict)
+        self.assertIn('Wrong Extended Class',
+                      next(self.g).message)
+
+    def test_extends_is_not_valid(self):
+        p_dict = deepcopy(MURANOPL_BASE['Extends'])
+        p_dict = 4
+        self.g = self.mpl_validator._valid_extends(p_dict)
+        self.assertIn('Wrong Extended Class',
+                      next(self.g).message)
+
+    def test_body_number(self):
+        m_dict = deepcopy(MURANOPL_BASE['Methods'])
+        m_dict['prepareStackTemplate']['Body'] = 1
+        self.g = self.mpl_validator._valid_methods(m_dict)
+        self.assertIn('Body is not a list or scalar/yaql expression',
+                      next(self.g).message)
+
+    def test_method_is_a_list(self):
+        m_dict = deepcopy(MURANOPL_BASE['Methods'])
+        m_dict['prepareStackTemplate'] = []
+        self.g = self.mpl_validator._valid_methods(m_dict)
+        self.assertIn('Method is not a dict',
+                      next(self.g).message)

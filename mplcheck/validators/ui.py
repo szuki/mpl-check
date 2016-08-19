@@ -46,12 +46,12 @@ class UiValidator(base.YamlValidator):
                 elif key == 'required':
                     if not isinstance(value, bool):
                         yield error.report.E081('Value of {0} should be '
-                                                'boolean "{1}"'
-                                                .format(key, value), value)
+                                                'boolean not "{1}"'
+                                                .format(key, value), key)
                 elif key == 'hidden':
                     if not isinstance(value, bool):
                         yield error.report.E081('Value of {0} should be '
                                                 'boolean "{1}"'
-                                                .format(key, value), value)
+                                                .format(key, value), key)
                 else:
                     yield self._valid_string(value)

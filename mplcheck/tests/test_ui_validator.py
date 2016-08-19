@@ -46,3 +46,29 @@ class UiValidatorTest(helpers.BaseValidatorTestClass):
                 }]}}]
         self.g = self.ui_validator._validate_forms(forms)
         self.assertIn('Wrong type of field "int"', next(self.g).message)
+
+    def test_forms_required_bool(self):
+        forms = [
+            {'name1': {
+                'fields': [{
+                    'name': 'whatever',
+                    'type': 'integer',
+                    'label': 'sth',
+                    'description': 'something',
+                    'required': 2,
+                }]}}]
+        self.g = self.ui_validator._validate_forms(forms)
+        self.assertIn('Value of', next(self.g).message)
+
+    def test_forms_hidden_bool(self):
+        forms = [
+            {'name1': {
+                'fields': [{
+                    'name': 'whatever',
+                    'type': 'integer',
+                    'label': 'sth',
+                    'description': 'something',
+                    'hidden': 2,
+                }]}}]
+        self.g = self.ui_validator._validate_forms(forms)
+        self.assertIn('Value of', next(self.g).message)

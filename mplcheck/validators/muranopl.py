@@ -49,28 +49,15 @@ class MuranoPLValidator(base.YamlValidator):
     def _valid_extends(self, value):
         if isinstance(value, list):
             for cls in value:
-                if not self.check_extended_class(cls):
-                    yield error.report.E023('Wrong Extended Class', cls)
-        elif isinstance(value, six.string_types):
-            if not self.check_extended_class(value):
-                yield error.report.E023('Wrong Extended Class', cls)
-        else:
+                if not isinstance(cls, six.string_types):
+                    yield error.report.E024("Wrong Extended Class type", value)
+        elif not isinstance(value, six.string_types):
             yield error.report.E024("Wrong Extended Class type", value)
-
-    def check_extended_class(self, cls):
-        if isinstance(cls, six.string_types):
-            if ':' not in cls:
-                # This means we can check if class is defined in this
-                # resources
-                pass
-            return True
-        return False
 
     def _valid_contract(self, contract):
         if isinstance(contract, list):
             if len(contract) > 1:
-                yield error.report.E042('Too many objects in list'
-                                        '"{0}"'.format(contract),
+                yield error.report.E042('Too many items in contract list',
                                         contract)
             elif len(contract) == 1:
                 contract = contract[0]
@@ -98,8 +85,6 @@ class MuranoPLValidator(base.YamlValidator):
         usage_allowed = frozenset(['In', 'Out', 'InOut', 'Const', 'Static',
                                   'Runtime'])
         for property_, values in six.iteritems(value):
-            if not self.check_property_name(property_):
-                yield error.report.E041('Wrong property name', property_)
             usage = values.get('Usage')
             if usage:
                 if usage not in usage_allowed:
@@ -112,9 +97,6 @@ class MuranoPLValidator(base.YamlValidator):
             else:
                 yield error.report.E047('Missing Contract in property "{0}"'
                                         .format(property_), property_)
-
-    def check_property_name(self, property_):
-        return True
 
     def _valid_namespaces(self, value):
         if not isinstance(value, dict):

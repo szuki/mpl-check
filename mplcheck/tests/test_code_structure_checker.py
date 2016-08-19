@@ -25,6 +25,14 @@ class CodeStructureTest(helpers.BaseValidatorTestClass):
         SIMPLE_BODY = '$.deploy()'
         self.g = self._checker.codeblock(SIMPLE_BODY)
 
+    def test_double_assigment(self):
+        SIMPLE_BODY = [{
+                '$a':'$.deploy()',
+                '$b':'$.string()'}]
+        self.g = self._checker.codeblock(SIMPLE_BODY)
+        self.assertIn('Wrong code structure/assigment probably typo',
+                      next(self.g).message)
+
     def test_multiline(self):
         MULTILINE_BODY = [
             '$.deploy()',
@@ -95,14 +103,14 @@ class CodeStructureTest(helpers.BaseValidatorTestClass):
                 '$.black()': '$.single()',
                 '$.blue()': [
                     '$.b()',
-                    {'w': 3}]},
+                    {'$w': 3}]},
              'Default': '$.a()'}
         ]
         self.g = self._checker.codeblock(MULTILINE_BODY)
 
     def test_error_under_while_in_if(self):
         MULTILINE_BODY = [
-            {'If': 1,
+            {'If': '1',
              'Then': {'While': '$.deploy()',
                       'Do': [
                           {'www': '$.a()'},
@@ -110,3 +118,28 @@ class CodeStructureTest(helpers.BaseValidatorTestClass):
         ]
         self.g = self._checker.codeblock(MULTILINE_BODY)
         self.assertIn('Not valid variable name "www"', next(self.g).message)
+
+    def test_not_string(self):
+        MULTILINE_BODY  = [
+            {'Try': [
+                '$port.deploy()'],
+                'Catch': '',
+                'With': 213,
+                'As': 'what',
+                'Do': [
+                    '$.string()']}]
+        self.g = self._checker.codeblock(MULTILINE_BODY)
+        self.assertIn('Value should be string type "213"',
+                      next(self.g).message)
+
+    def test_not_empty(self):
+        MULTILINE_BODY = [
+            '$.deploy()',
+            {'$d': 'new(YaqlStuff)'},
+            '$.call($res)',
+            {'Break':'a'},
+        ]
+        self.g = self._checker.codeblock(MULTILINE_BODY)
+        self.assertIn('There should be no value here "a"',
+                      next(self.g).message)
+
