@@ -84,8 +84,7 @@ class BaseLoader(object):
     def read(self, path):
         if path in self._cached_files:
             return self._cached_files[path]
-        self._cached_files[path] = FileWrapper(self,
-                                               os.path.join(self.path, path))
+        self._cached_files[path] = FileWrapper(self, path)
         return self._cached_files[path]
 
     def try_set_format(self):
