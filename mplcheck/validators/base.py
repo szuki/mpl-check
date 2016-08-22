@@ -24,7 +24,20 @@ LOG = log.get_logger(__name__)
 
 
 def check_version(method, version):
-    pass
+    since = method._mpl_since
+    till = method._mpl_till
+    if (not since or version >= since) and\
+        (not till or version <= till):
+        return True
+    return False
+
+
+def format_support(since=None, till=None):
+    def _func(func):
+        func._mpl_since = since
+        func._mpl_till = till
+        return func
+    return _func
 
 
 class BaseValidator(object):

@@ -30,10 +30,11 @@ MURANOPL_BASE = {
             'Contract': '$.class(NeutronPort).notNull()',
             'Default': []}},
     'Methods': {
-        'prepareStackTemplate': {
+        'foo': {
             'Scope': 'Public',
-            'Arguments': {
-                'instanceTemplate': {'Contract': {}}},
+            'Arguments':[{
+                'arg1': {'Contract': '$.string()',
+                         'Usage': 'Standard'}}],
             'Body': [
                 {'Do': [
                     '$port.deploy()',
@@ -43,12 +44,12 @@ MURANOPL_BASE = {
                                 'properties': {
                                     'networks': [
                                         {'port': '$port.getRef()'}]}}}}},
-                    {'$instanceTemplate':
-                        '$instanceTemplate.mergeWith($template)'}],
+                    {'$arg1':
+                        '$arg1.mergeWith($template)'}],
                  'For': 'port',
                  'In': '$.ports'},
                 {'$sth': 'new(res:Neutron)'},
-                {'Return': '$instanceTemplate'}]}},
+                {'Return': '$arg1'}]}},
 }
 
 
@@ -56,6 +57,7 @@ class MuranoPlTests(helpers.BaseValidatorTestClass):
     def setUp(self):
         super(MuranoPlTests, self).setUp()
         self.loaded_package = mock.Mock()
+        self.loaded_package.format = '1.4'
         self.mpl_validator = MuranoPLValidator(self.loaded_package)
 
     def test_double_underscored_name(self):
@@ -87,31 +89,31 @@ class MuranoPlTests(helpers.BaseValidatorTestClass):
 
     def test_wrong_method_scope(self):
         m_dict = deepcopy(MURANOPL_BASE['Methods'])
-        m_dict['prepareStackTemplate']['Scope'] = 'Wrong'
+        m_dict['foo']['Scope'] = 'Wrong'
         self.g = self.mpl_validator._valid_methods(m_dict)
         self.assertIn('Wrong Scope "Wrong"',
                       next(self.g).message)
 
     def test_dict_in_body(self):
         m_dict = deepcopy(MURANOPL_BASE['Methods'])
-        m_dict['prepareStackTemplate']['Body'] = {'$a': 'b'}
+        m_dict['foo']['Body'] = {'$a': 'b'}
         self.g = self.mpl_validator._valid_methods(m_dict)
 
     def test_error_in_method_scalar_body(self):
         m_dict = deepcopy(MURANOPL_BASE['Methods'])
-        m_dict['prepareStackTemplate']['Body'] = '$.deploy('
+        m_dict['foo']['Body'] = '$.deploy('
         self.g = self.mpl_validator._valid_methods(m_dict)
         self.assertIn('Not a valid yaql expression "$.deploy("',
                       next(self.g).message)
 
     def test_method_body_is_return(self):
         m_dict = deepcopy(MURANOPL_BASE['Methods'])
-        m_dict['prepareStackTemplate']['Body'] = {'Return': '3'}
+        m_dict['foo']['Body'] = {'Return': '3'}
         self.g = self.mpl_validator._valid_methods(m_dict)
 
     def test_error_in_method_for_loop_in(self):
         m_dict = deepcopy(MURANOPL_BASE['Methods'])
-        m_dict['prepareStackTemplate']['Body'][0]['In'] =\
+        m_dict['foo']['Body'][0]['In'] =\
             '$.deploy('
         self.g = self.mpl_validator._valid_methods(m_dict)
         self.assertIn('Not a valid yaql expression "$.deploy("',
@@ -119,7 +121,7 @@ class MuranoPlTests(helpers.BaseValidatorTestClass):
 
     def test_error_in_method_for_loop_in(self):
         m_dict = deepcopy(MURANOPL_BASE['Methods'])
-        m_dict['prepareStackTemplate']['Body'][0]['In'] =\
+        m_dict['foo']['Body'][0]['In'] =\
             '$.deploy('
         self.g = self.mpl_validator._valid_methods(m_dict)
         self.assertIn('Not a valid yaql expression "$.deploy("',
@@ -127,7 +129,7 @@ class MuranoPlTests(helpers.BaseValidatorTestClass):
 
     def test_error_in_method_for_loop_body(self):
         m_dict = deepcopy(MURANOPL_BASE['Methods'])
-        m_dict['prepareStackTemplate']['Body'][0]['Do'][1] =\
+        m_dict['foo']['Body'][0]['Do'][1] =\
             '$.deploy('
         self.g = self.mpl_validator._valid_methods(m_dict)
         self.assertIn('Not a valid yaql expression "$.deploy("',
@@ -208,14 +210,80 @@ class MuranoPlTests(helpers.BaseValidatorTestClass):
 
     def test_body_number(self):
         m_dict = deepcopy(MURANOPL_BASE['Methods'])
-        m_dict['prepareStackTemplate']['Body'] = 1
+        m_dict['foo']['Body'] = 1
         self.g = self.mpl_validator._valid_methods(m_dict)
         self.assertIn('Body is not a list or scalar/yaql expression',
                       next(self.g).message)
 
     def test_method_is_a_list(self):
         m_dict = deepcopy(MURANOPL_BASE['Methods'])
-        m_dict['prepareStackTemplate'] = []
+        m_dict['foo'] = []
         self.g = self.mpl_validator._valid_methods(m_dict)
         self.assertIn('Method is not a dict',
+                      next(self.g).message)
+
+    def test_method_scope_in_1_2(self):
+        m_dict = deepcopy(MURANOPL_BASE['Methods'])
+        del m_dict['foo']['Arguments'][0]['arg1']['Usage']
+        self.loaded_package.format = '1.2'
+        self.g = self.mpl_validator._valid_methods(m_dict)
+        self.assertIn('Scope is not supported version earlier than 1.3',
+                      next(self.g).message)
+
+    def test_method_usage_action_in_1_4(self):
+        m_dict = deepcopy(MURANOPL_BASE['Methods'])
+        m_dict['foo']['Usage'] = 'Action'
+        self.loaded_package.format = '1.4'
+        self.g = self.mpl_validator._valid_methods(m_dict)
+        self.assertIn('Usage "Action" is deprecated since 1.4',
+                      next(self.g).message)
+
+    def test_method_usage_action(self):
+        m_dict = deepcopy(MURANOPL_BASE['Methods'])
+        m_dict['foo']['Usage'] = 'Action'
+        self.loaded_package.format = '1.4'
+        self.g = self.mpl_validator._valid_methods(m_dict)
+        self.assertIn('Usage "Action" is deprecated since 1.4',
+                      next(self.g).message)
+
+    def test_method_wrong_usage_action(self):
+        m_dict = deepcopy(MURANOPL_BASE['Methods'])
+        m_dict['foo']['Usage'] = 'Runtimed'
+        self.loaded_package.format = '1.4'
+        self.g = self.mpl_validator._valid_methods(m_dict)
+        self.assertIn('Unsupported usage type "Runtimed"',
+                      next(self.g).message)
+
+    def test_method_wrong_usage_static_in_1_3(self):
+        m_dict = deepcopy(MURANOPL_BASE['Methods'])
+        del m_dict['foo']['Scope']
+        del m_dict['foo']['Arguments'][0]['arg1']['Usage']
+        m_dict['foo']['Usage'] = 'Static'
+        self.loaded_package.format = '1.3'
+        self.g = self.mpl_validator._valid_methods(m_dict)
+        self.assertIn('Usage "Static" is available from 1.3',
+                      next(self.g).message)
+
+    def test_method_arguments_are_dict(self):
+        self.g = self.mpl_validator._valid_arguments({'a':'b'})
+        self.assertIn('Methods arguments should be a list',
+                      next(self.g).message)
+
+    def test_method_arguments_element_is_two_key(self):
+        arguments = [
+            {'a':{'Contract': '$.string()'},
+             'b':{'Contract': '$.string()'}}]
+        self.g = self.mpl_validator._valid_arguments(arguments)
+        self.assertIn('Methods single argument should be a one key dict',
+                      next(self.g).message)
+
+    def test_method_arguments_usage_1_3(self):
+        self.loaded_package.format = '1.3'
+        self.g = self.mpl_validator._valid_argument_usage('Standard')
+        self.assertIn('Arguments usage is available since 1.4',
+                      next(self.g).message)
+
+    def test_wrong_method_arguments_usage(self):
+        self.g = self.mpl_validator._valid_argument_usage('Standard1')
+        self.assertIn('Usage is invalid value "Standard1"',
                       next(self.g).message)
