@@ -21,17 +21,18 @@ import zipfile
 import six
 import yaml
 
+from mplcheck import consts
 from mplcheck import yaml_loader
 
 
 class FileWrapper(object):
 
-    def __init__(self, path):
+    def __init__(self, pkg, path):
         self._path = path
-        with open(path) as file_:
+        with pkg.open_file(path) as file_:
             self._raw = file_.read()
 
-        with open(path) as file_:
+        with pkg.open_file(path) as file_:
             try:
                 self._yaml = list(yaml.load_all(file_, yaml_loader.YamlLoader))
             except yaml.YAMLError:
@@ -49,18 +50,27 @@ class BaseLoader(object):
     def __init__(self, path):
         self.path = path
         self._cached_files = dict()
+        self.format = consts.DEFAULT_FORMAT
+        self.version = consts.DEFAULT_VERSION
 
     @classmethod
     @abc.abstractmethod
-    def try_load(cls, path):
+    def _try_load(cls, path):
         pass
+
+    @classmethod
+    def try_load(cls, path):
+        loader = cls._try_load(path)
+        if loader:
+            loader.try_set_format()
+        return loader
 
     @abc.abstractmethod
     def list_files(self, subdir=None):
         pass
 
     @abc.abstractmethod
-    def _open_file(self, path, mode='r'):
+    def open_file(self, path, mode='r'):
         pass
 
     @abc.abstractmethod
@@ -74,19 +84,28 @@ class BaseLoader(object):
     def read(self, path):
         if path in self._cached_files:
             return self._cached_files[path]
-        self._cached_files[path] = FileWrapper(os.path.join(self.path, path))
+        self._cached_files[path] = FileWrapper(self,
+                                               os.path.join(self.path, path))
         return self._cached_files[path]
+
+    def try_set_format(self):
+        if self.exists(consts.MANIFEST_PATH):
+            manifest = self.read(consts.MANIFEST_PATH).yaml()
+            if manifest and 'Format' in manifest and '/' in manifest['Format']:
+                fmt, version = manifest['Format'].split('/', 1)
+                self.format = fmt
+                self.version = version
 
 
 class DirectoryLoader(BaseLoader):
 
     @classmethod
-    def try_load(cls, path):
+    def _try_load(cls, path):
         if os.path.isdir(path):
             return cls(path)
         return None
 
-    def _open_file(self, path, mode='r'):
+    def open_file(self, path, mode='r'):
         return open(os.path.join(self.path, path), mode)
 
     def list_files(self, subdir=None):
@@ -116,13 +135,13 @@ class ZipLoader(BaseLoader):
         self._zipfile = zipfile.ZipFile(self.path)
 
     @classmethod
-    def try_load(cls, path):
+    def _try_load(cls, path):
         try:
             return cls(path)
         except zipfile.BadZipfile:
             return None
 
-    def _open_file(self, name, mode='r'):
+    def open_file(self, name, mode='r'):
         return self._zipfile.open(name, mode)
 
     def list_files(self, subdir=None):

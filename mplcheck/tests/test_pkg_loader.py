@@ -16,36 +16,37 @@ import unittest
 
 import mock
 
+from mplcheck import consts
 from mplcheck import pkg_loader
 
 
 class FileWrapperTest(unittest.TestCase):
 
     def test_file_wrapper(self):
-        m_file = mock.mock_open(read_data='text')
-        with mock.patch('mplcheck.pkg_loader.open', m_file):
-            f = pkg_loader.FileWrapper('fake_path')
-            self.assertEqual('text', f.raw())
-            self.assertEqual(['text'], f.yaml())
+        fake_pkg = mock.Mock()
+        fake_pkg.open_file.side_effect = lambda f: mock.mock_open(read_data='text')()
+        f = pkg_loader.FileWrapper(fake_pkg, 'fake_path')
+        self.assertEqual('text', f.raw())
+        self.assertEqual(['text'], f.yaml())
 
-        m_file = mock.mock_open(read_data='!@#$%')
-        with mock.patch('mplcheck.pkg_loader.open', m_file):
-            f = pkg_loader.FileWrapper('fake_path')
-            self.assertEqual('!@#$%', f.raw())
-            self.assertEqual(None, f.yaml())
+        fake_pkg.open_file.side_effect = lambda f: mock.mock_open(read_data='!@#$%')()
+        f = pkg_loader.FileWrapper(fake_pkg, 'fake_path')
+        self.assertEqual('!@#$%', f.raw())
+        self.assertEqual(None, f.yaml())
 
 
 class FakeLoader(pkg_loader.BaseLoader):
 
     @classmethod
-    def try_load(cls, path):
-        pass
+    def _try_load(cls, path):
+        return cls(path)
 
-    def _open_file(self, path, mode='r'):
+    def open_file(self, path, mode='r'):
         pass
 
     def exists(self, name):
-        pass
+        if name == consts.MANIFEST_PATH:
+            return True
 
     def list_files(self, subdir=None):
         if subdir is None:
@@ -55,6 +56,26 @@ class FakeLoader(pkg_loader.BaseLoader):
 
 
 class BaseLoaderTest(unittest.TestCase):
+
+    @mock.patch.object(FakeLoader, '_try_load')
+    @mock.patch.object(FakeLoader, 'try_set_format')
+    def test_try_load(self, m_format, m_load):
+        m_load.return_value = FakeLoader('fake')
+        FakeLoader.try_load('fake')
+        m_load.assert_called_once_with('fake')
+        m_format.assert_called_once_with()
+
+    @mock.patch.object(FakeLoader, '_try_load')
+    def test_try_set_version(self, m_load):
+        m_file_wrapper = mock.Mock()
+        m_file = m_file_wrapper.return_value
+        m_file.yaml.return_value = {'Format': 'Fake/42'}
+        with mock.patch('mplcheck.pkg_loader.FileWrapper', m_file_wrapper):
+            m_load.return_value = FakeLoader('fake')
+            loader = FakeLoader.try_load('fake')
+            self.assertEqual('Fake', loader.format)
+            self.assertEqual('42', loader.version)
+            m_file.yaml.assert_called_once_with()
 
     def test_search_for(self):
         fake = FakeLoader('fake')
@@ -79,8 +100,12 @@ class DirectoryLoaderTest(unittest.TestCase):
 
     def _load_fake_pkg(self):
         with mock.patch('mplcheck.pkg_loader.os.path.isdir') as m_isdir:
-            m_isdir.return_value = True
-            return pkg_loader.DirectoryLoader.try_load('fake')
+            with mock.patch.object(pkg_loader.DirectoryLoader,
+                                   'try_set_format') as m:
+                m_isdir.return_value = True
+                loader = pkg_loader.DirectoryLoader.try_load('fake')
+                m.assert_called_once_with()
+                return loader
 
 
     def test_try_load(self):
